@@ -43,24 +43,25 @@ public class Decrypt {
 	}
 
 
-	public static void main(String[] args) {
+	// public static void main(String[] args) {
+	public static void decrypt(String encrKey, String fileName) {
 		// args[0] e a chave a ser usada
 		// args[1] e o nome do arquivo de entrada
 
 		try {
 
-			byte[] key = args[0].getBytes();
+			byte[] key = encrKey.getBytes();
 			SecretKeySpec keySpec = new SecretKeySpec(key, "Blowfish");
 
 			Cipher cipher = Cipher.getInstance("Blowfish");
 			cipher.init(Cipher.DECRYPT_MODE, keySpec);
 
-			byte[] message = readFile(args[1]);
+			byte[] message = readFile(fileName);
 			System.out.println("message size (bytes) = "+ message.length);
 
 			byte[] decrypted = cipher.doFinal(message);
 
-			saveFile(args[0]+".msg", decrypted);
+			saveFile(encrKey+".msg", decrypted);
 
 		} catch (javax.crypto.BadPaddingException e) {
 			// essa excecao e jogada quando a senha esta incorreta
@@ -73,4 +74,7 @@ public class Decrypt {
 		}
 	}
 
+	public static void main(String[] args) {
+		decrypt("faena", "message.txt.cipher");
+	}
 }
