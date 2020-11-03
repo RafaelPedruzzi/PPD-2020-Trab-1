@@ -36,6 +36,8 @@ public class Client {
 
 		try {
 			Registry registry = LocateRegistry.getRegistry("localhost");
+			// 2804:7f2:595:6bfa:590f:4e52:d8cb:946f
+			// 179.178.243.233
 			Master master = (Master) registry.lookup("mestre");
 			
 			Scanner s = new Scanner(System.in);

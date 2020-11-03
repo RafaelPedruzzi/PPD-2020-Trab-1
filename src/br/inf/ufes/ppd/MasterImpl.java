@@ -6,13 +6,12 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MasterImpl implements Master {
 
-    private List<Slave> slaves = new java.util.ArrayList<Slave>();
+    private Map<UUID, Slave> slaves = new HashMap<UUID, Slave>();
+    private List<Guess> guesses = new LinkedList<Guess>();
 
     public static void main(String[] args) {
         try {
@@ -35,26 +34,28 @@ public class MasterImpl implements Master {
     }
 
     @Override
-    public void addSlave(Slave s, String slaveName, UUID slavekey) throws RemoteException {
+    public void addSlave(Slave s, String slaveName, UUID slaveKey) throws RemoteException {
         System.out.println("Pedido de registro de " + slaveName);
-        System.out.println("UUID = " + slavekey);
+        System.out.println("UUID = " + slaveKey);
         synchronized (slaves) {
-            slaves.add(s);
+            slaves.put(slaveKey, s);
         }
         System.out.println("Registro concluido com sucesso.");
     }
 
     @Override
     public void removeSlave(UUID slaveKey) throws RemoteException {
-        // TODO Auto-generated method stub
-
+        synchronized (slaves) {
+            slaves.remove(slaveKey);
+        }
     }
 
     @Override
-    public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess)
-            throws RemoteException {
-        // TODO Auto-generated method stub
+    public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess) throws RemoteException {
+        synchronized (slaves) {
 
+        }
+        
     }
 
     @Override
@@ -65,7 +66,7 @@ public class MasterImpl implements Master {
 
     @Override
     public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
-        List<Guess> candidates = new LinkedList<Guess>();
+        System.out.println("Got attack order!");
 
         Guess g = new Guess();
         g.setKey("1-biscoito");
@@ -80,9 +81,16 @@ public class MasterImpl implements Master {
             e.printStackTrace();
         }
 
-        candidates.add(g);
-        candidates.add(g2);
+        List<Guess> candidates;
 
-        return candidates.toArray(new Guess[candidates.size()]);
+        synchronized (guesses) {
+            guesses.add(g);
+            guesses.add(g2);
+            candidates = guesses.copy();
+        }
+
+        System.out.println("FIREEEE!!!");
+
+        return candidates.toArray(new Guess[guesses.size()]);
     }
 }

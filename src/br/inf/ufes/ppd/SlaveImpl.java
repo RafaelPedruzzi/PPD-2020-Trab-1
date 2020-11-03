@@ -55,7 +55,7 @@ public class SlaveImpl implements Serializable, Slave {
 
 	public void setKey(java.util.UUID key) {
 		this.key = key;
-	}
+    }
 
 	public String getName() {
 		return name;
