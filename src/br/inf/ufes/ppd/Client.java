@@ -1,6 +1,8 @@
 package br.inf.ufes.ppd;
 
 import java.io.*;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 public class Client {
@@ -27,32 +29,35 @@ public class Client {
 	    out.write(data);
 	    out.close();
 	}
+	
     public static void main(String[] args) {
 
 		// String host = (args.length < 1) ? null : args[0];
 
 		try {
-			// Registry registry = LocateRegistry.getRegistry("localhost");
-			// Master master = (Master) registry.lookup("mestre");
+			Registry registry = LocateRegistry.getRegistry("localhost");
+			Master master = (Master) registry.lookup("mestre");
 			
 			Scanner s = new Scanner(System.in);
 
-			System.out.println("Enter cipher text file name: ");
-			String filename = s.nextLine();	
-            byte[] ciphertext = readFile(filename);
+			// System.out.println("Enter cipher text file name: ");
+			// String filename = s.nextLine();	
+			// byte[] ciphertext = readFile(filename);
+			byte[] ciphertext = readFile("message.txt.cipher");
 			
-            System.out.println("Enter known text: ");
-			String tmp = s.nextLine();
-            byte[] knowntext = tmp.getBytes();
+            // System.out.println("Enter known text: ");
+			// String tmp = s.nextLine();
+			// byte[] knowntext = tmp.getBytes("utf-8");
+			byte[] knowntext = "world".getBytes("utf-8");
 
             s.close();
             
-            Master master = new MasterImpl();
+            // Master master = new MasterImpl();
             
 			Guess[] candidates = master.attack(ciphertext, knowntext);
 			
 			for(Guess g : candidates) {
-                saveFile(g.getKey() + ".msg", g.getMessage());
+				saveFile(g.getKey() + ".msg", g.getMessage());
             }
 
 		} catch (Exception e) {
