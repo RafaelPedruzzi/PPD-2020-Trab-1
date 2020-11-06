@@ -20,7 +20,6 @@ public class MasterImpl implements Master {
 
             MasterImpl master = new MasterImpl();
             Master objref = (Master) UnicastRemoteObject.exportObject(master, 0);
-            // Registry registry = LocateRegistry.getRegistry();
 
             System.err.println("Master server binding...");
 
@@ -33,13 +32,20 @@ public class MasterImpl implements Master {
         }
     }
 
+    public static Runnable t1 = new Runnable() {
+        public void run() {
+
+        }
+    };
+
     @Override
     public void addSlave(Slave s, String slaveName, UUID slaveKey) throws RemoteException {
-        System.out.println("Pedido de registro de " + slaveName);
+        System.out.println("Pedido de (re)registro de " + slaveName);
         System.out.println("UUID = " + slaveKey);
         synchronized (slaves) {
             slaves.put(slaveKey, s);
         }
+        s.startSubAttack(new byte[5],new byte[5],0,0,0,this);
         System.out.println("Registro concluido com sucesso.");
     }
 
@@ -52,9 +58,9 @@ public class MasterImpl implements Master {
 
     @Override
     public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess) throws RemoteException {
-        synchronized (slaves) {
+        // synchronized (slaves) {
 
-        }
+        // }
         
     }
 
@@ -81,16 +87,16 @@ public class MasterImpl implements Master {
             e.printStackTrace();
         }
 
-        List<Guess> candidates;
+        List<Guess> candidates = new ArrayList<Guess>();
 
         synchronized (guesses) {
             guesses.add(g);
             guesses.add(g2);
-            candidates = guesses.copy();
+            candidates.addAll(guesses);
         }
 
         System.out.println("FIREEEE!!!");
 
-        return candidates.toArray(new Guess[guesses.size()]);
+        return candidates.toArray(new Guess[candidates.size()]);
     }
 }
