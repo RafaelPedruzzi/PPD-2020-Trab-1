@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd;
+package br.inf.ufes.ppd.master;
 
 import java.io.UnsupportedEncodingException;
 import java.rmi.Remote;
@@ -7,6 +7,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+
+import br.inf.ufes.ppd.interfaces.*;
+import br.inf.ufes.ppd.methods.Log;
 
 public class MasterImpl implements Master {
 
@@ -18,16 +21,16 @@ public class MasterImpl implements Master {
             System.setProperty("java.rmi.server.hostname", "localhost");
             Registry registry = LocateRegistry.createRegistry(1099);
 
+            Log.log("MASTER", "Criando referencia remota do mestre...");
             MasterImpl master = new MasterImpl();
-            Master objref = (Master) UnicastRemoteObject.exportObject(master, 0);
+            Master masterRef = (Master) UnicastRemoteObject.exportObject(master, 0);
 
-            System.err.println("Master server binding...");
-
-            registry.rebind("mestre", objref);
-            System.err.println("Master server ready");
+            Log.log("MASTER", "Fazendo o binding do mestre no registry...");
+            registry.rebind("mestre", masterRef);
+            Log.log("MASTER", "Binding concluido. Master's ready!");
 
         } catch (Exception e) {
-            System.err.println("Erro: Mestre não pode ser registrado: " + e.toString());
+            Log.log("MASTER", "Erro: Mestre não pode ser registrado: ");
             e.printStackTrace();
         }
     }
@@ -40,13 +43,15 @@ public class MasterImpl implements Master {
 
     @Override
     public void addSlave(Slave s, String slaveName, UUID slaveKey) throws RemoteException {
-        System.out.println("Pedido de (re)registro de " + slaveName);
-        System.out.println("UUID = " + slaveKey);
+        Log.log("MASTER", "Pedido de (re)registro de \"" + slaveName + "\" UUID: " + slaveKey);
+
         synchronized (slaves) {
             slaves.put(slaveKey, s);
         }
-        s.startSubAttack(new byte[5],new byte[5],0,0,0,this);
-        System.out.println("Registro concluido com sucesso.");
+
+        // s.startSubAttack(new byte[5], new byte[5], 0, 0, 0, this);
+
+        Log.log("MASTER", "Registro de " + slaveName + " concluido com sucesso.");
     }
 
     @Override
@@ -58,21 +63,17 @@ public class MasterImpl implements Master {
 
     @Override
     public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess) throws RemoteException {
-        // synchronized (slaves) {
-
-        // }
-        
+        // TODO
     }
 
     @Override
     public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
-        // TODO Auto-generated method stub
-
+        // TODO
     }
 
     @Override
     public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
-        System.out.println("Got attack order!");
+        Log.log("MASTER", "Requisicao de ataque recebida. Iniciando ataque...");
 
         Guess g = new Guess();
         g.setKey("1-biscoito");
@@ -95,7 +96,8 @@ public class MasterImpl implements Master {
             candidates.addAll(guesses);
         }
 
-        System.out.println("FIREEEE!!!");
+        // System.out.println("FIREEEE!!!");
+        Log.log("MASTER", "Finalizando ataque. Retornando resultados...");
 
         return candidates.toArray(new Guess[candidates.size()]);
     }
