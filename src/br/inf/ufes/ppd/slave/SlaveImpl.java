@@ -1,6 +1,7 @@
 package br.inf.ufes.ppd.slave;
 
 import java.io.Serializable;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -19,6 +20,7 @@ public class SlaveImpl implements Serializable, Slave {
     private String name;
     private String masterAddress;
     private Master masterRef;
+    public Timer timer;
 
     public SlaveImpl(String slaveName, String masterAddress) {
         this.key = java.util.UUID.randomUUID();
@@ -35,42 +37,63 @@ public class SlaveImpl implements Serializable, Slave {
 
         // String slaveName = args[1];
         String slaveName = "Slave01";
-        
+
         SlaveImpl slave = new SlaveImpl(slaveName, masterAddress);
 
         try {
             Log.log("SLAVE", "Criando referencia remota do Slave \"" + slave.getName() + "\"...");
-            Slave slaveRef = (Slave) UnicastRemoteObject.exportObject(slave, 0);
-            
-            Log.log("SLAVE", "Buscando a referencia do mestre no registry...");
-            Registry registry = LocateRegistry.getRegistry("localhost");
-            Master master = (Master) registry.lookup("mestre");
+            // Slave slaveRef = (Slave) UnicastRemoteObject.exportObject(slave, 0);
+            UnicastRemoteObject.exportObject(slave, 0);
 
-            slave.setMasterRef(master);
+            achaMestre(slave);
 
-            Log.log("SLAVE", "Registrando-se no mestre...");
-            master.addSlave(slaveRef, slave.getName(), slave.getKey());
-            Log.log("SLAVE", "Registro efetuado.");
-
-            Timer timer = new Timer();
-            timer.scheduleAtFixedRate(new SlaveRegister(master, slaveRef, slave.getName(), slave.getKey()), 30*1000, 30*1000);
         } catch (Exception e) {
             Log.log("SLAVE", "Erro: Falha de comunicação com o mestre.");
             e.printStackTrace();
         }
     }
 
+    public static boolean achaMestre(SlaveImpl s) {
+        try {
+            Log.log("SLAVE", "Buscando a referencia do mestre no registry...");
+            Registry registry = LocateRegistry.getRegistry("localhost");
+            Master master = (Master) registry.lookup("mestre");
+
+            s.setMasterRef(master);
+
+            Log.log("SLAVE", "Registrando-se no mestre...");
+            master.addSlave(s, s.getName(), s.getKey());
+            Log.log("SLAVE", "Registro efetuado.");
+
+            s.timer = new Timer();
+            s.timer.scheduleAtFixedRate(new SlaveRegister(s.getMasterRef(), s, s.getName(), s.getKey(), s.timer),
+                    30 * 1000, 30 * 1000);
+
+            return true;
+        } catch (NotBoundException e) {
+            Log.log("SLAVE", "Erro: Mestre nao encontrado.");
+            e.printStackTrace();
+            return false;
+        } catch (Exception e) {
+            Log.log("SLAVE", "Erro: Mestre nao encontrado.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     private static class SlaveRegister extends TimerTask {
         private Master m;
-        private Slave s;
+        private SlaveImpl s;
         private String n;
         private UUID k;
+        private Timer t;
 
-        public SlaveRegister(Master m, Slave s, String n, UUID k) {
+        public SlaveRegister(Master m, SlaveImpl s, String n, UUID k, Timer t) {
             this.m = m;
             this.s = s;
             this.n = n;
             this.k = k;
+            this.t = t;
         }
 
         @Override
@@ -79,10 +102,22 @@ public class SlaveImpl implements Serializable, Slave {
                 Log.log("SLAVE", "Re-registrando " + this.n + "...");
                 m.addSlave(s, n, k);
                 Log.log("SLAVE", "Re-registro de " + this.n + " concluido.");
-                
+
             } catch (Exception e) {
                 Log.log("SLAVE", "Erro: Mestre não encontrado.");
                 e.printStackTrace();
+
+                Log.log("SLAVE", "Buscando novo mestre...");
+                while (!achaMestre(s)) {
+                    try {
+                        Log.log("SLAVE", "Mestre não encontrado. Esperando 15 segundos");
+                        Thread.sleep(15 * 1000);
+                    } catch (InterruptedException e1) {
+                        Log.log("SLAVE", "Erro: Timer com insonia.");
+                        e1.printStackTrace();
+                    }
+                }
+                t.cancel();
             }
         }
     }
@@ -94,19 +129,19 @@ public class SlaveImpl implements Serializable, Slave {
     }
 
     public UUID getKey() {
-		return this.key;
-	}
-
-	public void setKey(UUID key) {
-		this.key = key;
+        return this.key;
     }
 
-	public String getName() {
-		return this.name;
-	}
-    
-	public void setName(String name) {
-		this.name = name;
+    public void setKey(UUID key) {
+        this.key = key;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setMasterRef(Master master) {
