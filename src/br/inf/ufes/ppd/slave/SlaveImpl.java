@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -32,11 +33,19 @@ public class SlaveImpl implements Serializable, Slave {
     public static void main(String args[]) {
         Log.log("SLAVE", "Criando novo Slave...");
 
+        Scanner s = new Scanner (System.in);
+
         // String masterAddress = args[0];
-        String masterAddress = "localhost";
+        // String masterAddress = "localhost";
+        Log.log("SLAVE", "Digite o master address: ");
+        String masterAddress = s.next();
 
         // String slaveName = args[1];
-        String slaveName = "Slave01";
+        // String slaveName = "Slave01";
+        Log.log("SLAVE", "Digite o nome do Slave: ");
+        String slaveName = s.next();
+
+        s.close();
 
         SlaveImpl slave = new SlaveImpl(slaveName, masterAddress);
 
@@ -56,7 +65,7 @@ public class SlaveImpl implements Serializable, Slave {
     public static boolean achaMestre(SlaveImpl s) {
         try {
             Log.log("SLAVE", "Buscando a referencia do mestre no registry...");
-            Registry registry = LocateRegistry.getRegistry("localhost");
+            Registry registry = LocateRegistry.getRegistry(s.getMasterAddress());
             Master master = (Master) registry.lookup("mestre");
 
             s.setMasterRef(master);
@@ -72,10 +81,10 @@ public class SlaveImpl implements Serializable, Slave {
             return true;
         } catch (NotBoundException e) {
             Log.log("SLAVE", "Erro: Mestre nao encontrado.");
-            e.printStackTrace();
+            // e.printStackTrace();
             return false;
         } catch (Exception e) {
-            Log.log("SLAVE", "Erro: Mestre nao encontrado.");
+            Log.log("SLAVE", "Erro");
             e.printStackTrace();
             return false;
         }
@@ -105,12 +114,12 @@ public class SlaveImpl implements Serializable, Slave {
 
             } catch (Exception e) {
                 Log.log("SLAVE", "Erro: Mestre não encontrado.");
-                e.printStackTrace();
+                // e.printStackTrace();
 
                 Log.log("SLAVE", "Buscando novo mestre...");
                 while (!achaMestre(s)) {
                     try {
-                        Log.log("SLAVE", "Mestre não encontrado. Esperando 15 segundos");
+                        Log.log("SLAVE", "Mestre não encontrado. Esperando 15 segundos...");
                         Thread.sleep(15 * 1000);
                     } catch (InterruptedException e1) {
                         Log.log("SLAVE", "Erro: Timer com insonia.");
@@ -149,6 +158,14 @@ public class SlaveImpl implements Serializable, Slave {
     }
 
     public Master getMasterRef() {
-        return masterRef;
+        return this.masterRef;
+    }
+
+    public void setMasterAddress(String masterAddress) {
+        this.masterAddress = masterAddress;
+    }
+
+    public String getMasterAddress() {
+        return this.masterAddress;
     }
 }
