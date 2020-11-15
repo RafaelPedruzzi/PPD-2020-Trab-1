@@ -21,26 +21,26 @@ public class Client {
 			
             Scanner s = new Scanner(System.in);
             
-            Log.log("CLIENT", "Digite o nome do arquivo com cipher text: ");
+            Log.log("CLIENT", "Digite o nome do arquivo com o texto criptografado: ");
 			// String filename = s.nextLine();	
 			// byte[] ciphertext = FileManager.readFile(filename);
 			byte[] ciphertext = FileManager.readFile("message.txt.cipher");
 			
-            Log.log("CLIENT", "Digite o known text: ");
+            Log.log("CLIENT", "Digite o trecho conhecido do texto: ");
 			// String tmp = s.nextLine();
 			// byte[] knowntext = tmp.getBytes("utf-8");
 			byte[] knowntext = "world".getBytes("utf-8");
 
             s.close();
             
-            Log.log("CLIENT", "Chamando o mestre para iniciar o ataque...");
+            Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
 			Guess[] candidates = master.attack(ciphertext, knowntext);
 			
 			for(Guess g : candidates) {
 				FileManager.saveFile(g.getKey() + ".msg", g.getMessage());
             }
 			
-            Log.log("CLIENT", "Ataque finalizado!");
+            Log.log("CLIENT", "Ataque finalizado com sucesso");
 		} catch (Exception e) {
 			System.err.println("Client exception: " + e.toString());
 			e.printStackTrace();

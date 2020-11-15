@@ -7,14 +7,17 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import br.inf.ufes.ppd.interfaces.*;
 import br.inf.ufes.ppd.methods.Log;
 
 public class MasterImpl implements Master {
 
+    private List<Attack> atks = new ArrayList<Attack>();
     private Map<UUID, Slave> slaves = new HashMap<UUID, Slave>();
-    private List<Guess> guesses = new LinkedList<Guess>();
+    private ExecutorService executor = Executors.newFixedThreadPool(8);
 
     public static void main(String[] args) {
         try {
