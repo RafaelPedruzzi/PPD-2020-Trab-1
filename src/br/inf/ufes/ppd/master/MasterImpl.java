@@ -18,6 +18,8 @@ public class MasterImpl implements Master {
     private List<Attack> atks = new ArrayList<Attack>();
     private Map<UUID, Slave> slaves = new HashMap<UUID, Slave>();
     private ExecutorService executor = Executors.newFixedThreadPool(8);
+	private int dictionaryLength = 80368;
+	// private SlaveManager slaveCallback;
 
     public static void main(String[] args) {
         try {
@@ -37,12 +39,6 @@ public class MasterImpl implements Master {
             e.printStackTrace();
         }
     }
-
-    public static Runnable t1 = new Runnable() {
-        public void run() {
-
-        }
-    };
 
     @Override
     public void addSlave(Slave s, String slaveName, UUID slaveKey) throws RemoteException {
@@ -76,32 +72,46 @@ public class MasterImpl implements Master {
 
     @Override
     public Guess[] attack(byte[] ciphertext, byte[] knowntext) throws RemoteException {
-        Log.log("MASTER", "Requisicao de ataque recebida. Iniciando ataque...");
+        Log.log("MASTER", "Requisicao de ataque recebida...");
 
-        Guess g = new Guess();
-        g.setKey("1-biscoito");
-        
-        Guess g2 = new Guess();
-        g2.setKey("2-zambon");
-        
-        try {
-            g.setMessage("Eh biscoito e nao bolacha!".getBytes("utf-8"));
-            g2.setMessage("zambon god".getBytes("utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        Attack a = new Attack(ciphertext, knowntext);
+
+        synchronized (atks) {
+            a.setAttackNumber(this.atks.size() + 1);
+            atks.add(a);
         }
+        
+		if (slaves.size() == 0) {
+            Log.log("MASTER", "Nenhum escravo disponivel");
+            return new Guess[0];
+		}
 
-        List<Guess> candidates = new ArrayList<Guess>();
+        Log.log("MASTER", "Iniciando ataque...");
 
-        synchronized (guesses) {
-            guesses.add(g);
-            guesses.add(g2);
-            candidates.addAll(guesses);
-        }
+        int i = 0;
+		synchronized (slaves) {
+			for (Map.Entry<UUID, Slave> s : slaves.entrySet()) {
 
-        // System.out.println("FIREEEE!!!");
+				// nextSubAttackID++;
+
+				int initialwordindex = i * (dictionaryLength / slaves.size());
+                int finalwordindex = (i + 1) * (dictionaryLength / slaves.size());
+    
+                SubAttack subAttack = new SubAttack(a.getAttackNumber(), new Range(initialwordindex, finalwordindex));
+
+                a.addSubAttack(s.getKey(), subAttack);
+
+                // TODO
+                // sendSubAttackRequest(subAttack);
+
+				// s.getValue().addCurrentSubAttackJob(nextSubAttackID);
+				// i++;
+			}
+
+		}
+
         Log.log("MASTER", "Finalizando ataque. Retornando resultados...");
 
-        return candidates.toArray(new Guess[candidates.size()]);
+        return ;
     }
 }

@@ -13,12 +13,12 @@ public class SubAttack {
 	private boolean done;
     // private Attack attack;
     
-    public SubAttack(int attackNumber, int initialwordindex, int finalwordindex) {
+    public SubAttack(int attackNumber, Range range) {
 		this.attackNumber = attackNumber;
 		this.startTime = System.nanoTime();
         this.lastCheckpointTime = System.nanoTime();
-        this.ranges.add(new Range(initialwordindex, finalwordindex));
-		this.currentindex = initialwordindex;
+        this.ranges.add(range);
+		this.currentindex = range.getInit();
 		this.done = false;
 	}
 

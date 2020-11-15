@@ -16,8 +16,7 @@ public class Attack {
 	private byte[] knowntext;
     private boolean done;
     
-    public Attack(int attackNumber, byte[] ciphertext, byte[] knowntext) {
-		this.attackNumber = attackNumber;
+    public Attack(byte[] ciphertext, byte[] knowntext) {
 		this.ciphertext = ciphertext;
 		this.knowntext = knowntext;
 		this.done = false;
@@ -28,6 +27,18 @@ public class Attack {
 			this.subAttacks.put(slave, subAttack);
 		}
     }
+
+	public SubAttack getSubAttack(UUID slave){
+		return this.subAttacks.get(slave);
+	}
+
+	public void addGuess(Guess g) {
+		this.guesses.add(g);
+	}
+
+	public Guess[] getGuesses() {
+		return guesses.toArray(new Guess[guesses.size()]);
+	}
 
 	public boolean isDone() {
 		if (this.done) return true;
@@ -43,4 +54,21 @@ public class Attack {
         this.done = true;
         return true;
 	}
+
+	public void setAttackNumber(int attackNumber) {
+		this.attackNumber = attackNumber;
+	}
+
+	public int getAttackNumber() { 
+		return this.attackNumber;
+	}
+
+	public byte[] getKnownText() {
+		return this.knowntext;
+	}
+
+	public byte[] getCipherText() {
+		return this.ciphertext;
+	}
+
 }
