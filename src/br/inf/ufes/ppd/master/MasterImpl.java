@@ -9,6 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import br.inf.ufes.ppd.interfaces.*;
 import br.inf.ufes.ppd.methods.Log;
@@ -76,12 +77,16 @@ public class MasterImpl implements Master {
 
         Attack a = new Attack(ciphertext, knowntext);
 
+        int attackNumber;
         synchronized (atks) {
-            a.setAttackNumber(this.atks.size() + 1);
+            attackNumber = this.atks.size() + 1;
+            a.setAttackNumber(attackNumber);
             atks.add(a);
         }
         
-		if (slaves.size() == 0) {
+        int avaiableSlavesNumber = slaves.size();
+
+		if (avaiableSlavesNumber == 0) {
             Log.log("MASTER", "Nenhum escravo disponivel");
             return new Guess[0];
 		}
@@ -94,24 +99,105 @@ public class MasterImpl implements Master {
 
 				// nextSubAttackID++;
 
-				int initialwordindex = i * (dictionaryLength / slaves.size());
-                int finalwordindex = (i + 1) * (dictionaryLength / slaves.size());
-    
+				int initialwordindex = (dictionaryLength / avaiableSlavesNumber) * i;
+                int finalwordindex   = (dictionaryLength / avaiableSlavesNumber) * (i + 1);
+
                 SubAttack subAttack = new SubAttack(a.getAttackNumber(), new Range(initialwordindex, finalwordindex));
 
                 a.addSubAttack(s.getKey(), subAttack);
 
-                // TODO
-                // sendSubAttackRequest(subAttack);
+                s.getValue().startSubAttack(
+                    ciphertext, 
+                    knowntext, 
+                    initialwordindex, 
+                    finalwordindex, 
+                    attackNumber, 
+                    this // (SlaveImpl) s.getMasterRef()
+                );
 
 				// s.getValue().addCurrentSubAttackJob(nextSubAttackID);
-				// i++;
+				i++;
 			}
 
-		}
+        }
+        
+        this.executor.execute(new AttackManager(a));
+
+		// synchronized (attack) {
+		// 	try
+		// 	{
+		// 		if(!attack.isDone())
+		// 		{
+		// 			attack.wait();
+		// 		}
+				
+		// 	}
+		// 	catch(InterruptedException e)
+		// 	{
+		// 		System.err.println("[M] Attack main thread interrupted. Returning 0 guess...");
+		// 		return new Guess[0];
+		// 	}
+		// }
+		
+		
+		// System.err.println("[M] Client request has finished. Returning " + attack.getFoundGuesses().size() + " found guess(es)");
+		
+		// Guess[] foundGuesses = new Guess[attack.getFoundGuesses().size()];
+		// return attack.getFoundGuesses().toArray(foundGuesses);
 
         Log.log("MASTER", "Finalizando ataque. Retornando resultados...");
 
         return ;
     }
+
+    private class AttackManager implements Runnable {
+        private Attack attack;
+        
+        public AttackManager(Attack attack) {
+        	this.attack = attack;
+        }
+        
+        public void run() {
+        	while(!attack.isDone()) {   				
+        		List<UUID> attackersToRemove = new ArrayList<UUID>();
+
+        		Map<UUID, SubAttack> subAttacks = attack.getSubAttacks();
+
+        		synchronized (subAttacks) {
+        			for(Map.Entry<UUID, SubAttack> s : subAttacks.entrySet()) {
+                        SubAttack subAttack = s.getValue();
+                        UUID slave = s.getKey();
+
+        				if(subAttack.isDone()) continue;
+        				
+                        long lastCheckpointTime = subAttack.getLastCheckpointTime();
+                        long timeSinceLastCheckpoint = System.nanoTime() - lastCheckpointTime;
+                        double seconds = (double) timeSinceLastCheckpoint / 1000000000.0;
+
+                        if(seconds > 20) {
+                            Log.log("MASTER", "O Slave [" + slave + "] sera removido");
+
+                            
+                            attackersToRemove.add(slave);
+                            // attack.redirect(subAttack);
+                        }
+        				
+        			}
+        		}
+
+        		// removing attackers marked for removal
+        		for(UUID slaveKey : attackersToRemove) {
+        			removeSlave(slaveKey);
+        		}
+
+        		try {
+        			TimeUnit.MILLISECONDS.sleep(5 * 1000);
+        		} catch (InterruptedException e) {
+                    Log.log("MASTER", "Ataque interrompido");
+                    e.printStackTrace();
+        		} 
+        	}
+        }
+	}
+
 }

@@ -55,6 +55,10 @@ public class Attack {
         return true;
 	}
 
+	public Map<UUID, SubAttack> getSubAttacks(){
+		return this.subAttacks;
+	}
+
 	public void setAttackNumber(int attackNumber) {
 		this.attackNumber = attackNumber;
 	}
