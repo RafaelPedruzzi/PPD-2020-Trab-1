@@ -1,5 +1,6 @@
 package br.inf.ufes.ppd.slave;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -17,8 +18,9 @@ public class SubAttackManager implements Runnable {
     private long finalwordindex;
     private int attackNumber;
     private Timer timer;
-
-    public SubAttackManager(SlaveManager masterRef, UUID slaveKey, byte[] ciphertext, byte[] knowntext, long initialwordindex, long finalwordindex, int attackNumber) {
+    private ArrayList<String> dictionary;
+    
+    public SubAttackManager(SlaveManager masterRef, UUID slaveKey, byte[] ciphertext, byte[] knowntext, long initialwordindex, long finalwordindex, int attackNumber, ArrayList<String> dictionary) {
         this.masterRef = masterRef;
         this.ciphertext = ciphertext;
         this.knowntext = knowntext;
@@ -27,20 +29,36 @@ public class SubAttackManager implements Runnable {
         this.finalwordindex = finalwordindex;
         this.attackNumber = attackNumber;
         this.slaveKey = slaveKey;
-
+        this.dictionary = dictionary;
         this.timer = new Timer();
         this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
     }
 
     @Override
     public void run() {
-        for (long i = initialwordindex; i <= finalwordindex; i++) {
-            // pegar palavra i em dictionary
-            // decryptografar cipher com i
-            // procurar knowtext
-            // se achou -> chama foundGuess
+        try {
+            System.out.println("initial: "+initialwordindex+" final: "+finalwordindex);
+;            for (long i = initialwordindex; i <= finalwordindex; i++) {
+                // pegar palavra i em dictionary
+                if (i == initialwordindex || i == finalwordindex) {
+                    System.out.println(this.dictionary.get((int)i));
+                }
+                // decryptografar cipher com i
+                // procurar knowtext
+                // se achou -> chama foundGuess
+                this.currentindex = i;
+            }
+            this.timer.cancel();
+            Log.log("SLAVE", "SubAttack concluido");
+            synchronized(this.masterRef) {
+                this.masterRef.checkpoint(this.slaveKey, this.attackNumber, this.currentindex);
+            }
+        } catch (Exception e) {
+            Log.log("SLAVE", "Erro: SubAttack falhou");
+            this.timer.cancel();
+            System.out.println(e);
+            // e.printStackTrace();
         }
-        //chamar checkpoint final
     }
 
     public void setCurrentIndex(long currentindex) {
@@ -52,9 +70,11 @@ public class SubAttackManager implements Runnable {
         public void run() {
             SubAttackManager cp = SubAttackManager.this;
             try {
-                Log.log("SLAVE", "Realizando Checkpoint...");
-                cp.masterRef.checkpoint(cp.slaveKey, cp.attackNumber, cp.currentindex);
-                Log.log("SLAVE", "Checkpoint concluido.");
+                synchronized(cp.masterRef) {
+                    Log.log("SLAVE", "Realizando Checkpoint...");
+                    cp.masterRef.checkpoint(cp.slaveKey, cp.attackNumber, cp.currentindex);
+                    Log.log("SLAVE", "Checkpoint concluido.");
+                }
 
             } catch (Exception e) {
                 Log.log("SLAVE", "Erro: Checkpoint falhou");

@@ -1,3 +1,5 @@
+package br.inf.ufes.ppd.master;
+
 public class Range {
     private long init;
     private long last;

@@ -50,7 +50,7 @@ public class SubAttack {
 		Range[] remaining;
 		synchronized (this.ranges) {
 			remaining = new Range[this.ranges.size()];
-			remaining[0] = new Range(currentindex, this.ranges.get(0).getLast()) ;
+			remaining[0] = new Range(currentindex +1, this.ranges.get(0).getLast()) ;
 			int i = 1;
 			for(Range r : this.ranges) {
 				remaining[i] = r;

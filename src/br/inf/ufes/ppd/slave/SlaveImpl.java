@@ -1,11 +1,14 @@
 package br.inf.ufes.ppd.slave;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,19 +27,21 @@ public class SlaveImpl implements Serializable, Slave {
     private String masterAddress;
     private Master masterRef;
     private ExecutorService executor = Executors.newFixedThreadPool(8);
-    public  Timer timer;
+    public Timer timer;
+    private ArrayList<String> dictionary;
 
-    public SlaveImpl(String slaveName, String masterAddress) {
+    public SlaveImpl(String slaveName, String masterAddress, ArrayList<String> dictionary) {
         this.key = java.util.UUID.randomUUID();
         this.name = slaveName;
         this.masterAddress = masterAddress;
         this.masterRef = null;
+        this.dictionary = dictionary;
     }
 
     public static void main(String args[]) {
         Log.log("SLAVE", "Criando novo Slave...");
 
-        Scanner s = new Scanner (System.in);
+        Scanner s = new Scanner(System.in);
 
         // String masterAddress = args[0];
         // String masterAddress = "localhost";
@@ -50,7 +55,20 @@ public class SlaveImpl implements Serializable, Slave {
 
         s.close();
 
-        SlaveImpl slave = new SlaveImpl(slaveName, masterAddress);
+        ArrayList<String> dictionary = null;
+        try {
+            Scanner s2 = new Scanner(new File("dictionary.txt"));
+            dictionary = new ArrayList<String>();
+            while (s2.hasNextLine()){
+                dictionary.add(s2.nextLine());
+            }
+            s2.close();
+        } catch (FileNotFoundException e1) {
+            Log.log("SLAVE", "Erro: Dicionario nao encontrado.");
+            System.exit(0);
+        }
+
+        SlaveImpl slave = new SlaveImpl(slaveName, masterAddress, dictionary);
 
         try {
             Log.log("SLAVE", "Criando referencia remota do Slave \"" + slave.getName() + "\"...");
@@ -61,7 +79,7 @@ public class SlaveImpl implements Serializable, Slave {
 
         } catch (Exception e) {
             Log.log("SLAVE", "Erro: Falha de comunicação com o mestre.");
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -88,7 +106,7 @@ public class SlaveImpl implements Serializable, Slave {
             return false;
         } catch (Exception e) {
             Log.log("SLAVE", "Erro");
-            e.printStackTrace();
+            // e.printStackTrace();
             return false;
         }
     }
@@ -126,7 +144,7 @@ public class SlaveImpl implements Serializable, Slave {
                         Thread.sleep(15 * 1000);
                     } catch (InterruptedException e1) {
                         Log.log("SLAVE", "Erro: Timer com insonia.");
-                        e1.printStackTrace();
+                        // e1.printStackTrace();
                     }
                 }
                 t.cancel();
@@ -146,7 +164,8 @@ public class SlaveImpl implements Serializable, Slave {
             knowntext, 
             initialwordindex, 
             finalwordindex, 
-            attackNumber
+            attackNumber,
+            this.dictionary
         );
 		
 		executor.execute(cpm);

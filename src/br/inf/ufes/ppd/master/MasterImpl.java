@@ -44,7 +44,7 @@ public class MasterImpl implements Master {
 
     @Override
     public void addSlave(Slave s, String slaveName, UUID slaveKey) throws RemoteException {
-        Log.log("MASTER", "Pedido de (re)registro de \"" + slaveName + "\" UUID: " + slaveKey);
+        Log.log("MASTER", "Pedido de (re)registro de \"" + slaveName + "\"");
 
         synchronized (slaves) {
             slaves.put(slaveKey, s);
@@ -58,6 +58,7 @@ public class MasterImpl implements Master {
 
     @Override
     public void removeSlave(UUID slaveKey) throws RemoteException {
+        Log.log("MASTER", "Removendo o Slave \"" + this.slavesNames.get(slaveKey) + "\"");
         synchronized (slaves) {
             slaves.remove(slaveKey);
             slavesNames.remove(slaveKey);
@@ -90,7 +91,7 @@ public class MasterImpl implements Master {
             Log.log("MASTER", "[FoundGuess] Slave: " + this.slavesNames.get(slaveKey) + 
                         " Index: " + currentindex + 
                         " Chave candidata: " + currentguess.getKey() +
-                        " Tempo desde o start: " + seconds
+                        " Tempo desde o start: " + seconds + " segundos."
             );
 			
 			attack.addGuess(currentguess);
@@ -130,7 +131,7 @@ public class MasterImpl implements Master {
             Log.log("MASTER", "[" + cp + "]" + 
                         " Slave: " + this.slavesNames.get(slaveKey) + 
                         " Index: " + currentindex + 
-                        " Tempo desde o start: " + seconds
+                        " Tempo desde o start: " + seconds + " segundos."
             );
 	        
 			synchronized (attack) {
@@ -166,8 +167,8 @@ public class MasterImpl implements Master {
         int i = 0;
 		synchronized (slaves) {
 			for (Map.Entry<UUID, Slave> s : slaves.entrySet()) {
-				long initialwordindex = (dictionaryLength / avaiableSlavesNumber) * i;
-                long finalwordindex   = (dictionaryLength / avaiableSlavesNumber) * (i + 1);
+				long initialwordindex = i * (dictionaryLength / avaiableSlavesNumber);
+                long finalwordindex   = ((i + 1) * (dictionaryLength / avaiableSlavesNumber)) - 1;
 
                 SubAttack subAttack = new SubAttack(a.getAttackNumber(), new Range(initialwordindex, finalwordindex));
 
@@ -202,7 +203,13 @@ public class MasterImpl implements Master {
 		
         Log.log("MASTER", "Finalizando ataque. Retornando resultados...");
         
-		return a.getGuesses();
+        Guess[] ans = a.getGuesses();
+
+        synchronized(atks) {
+            atks.remove(a);
+        }
+
+		return ans;
     }
 
     private class AttackManager implements Runnable {
