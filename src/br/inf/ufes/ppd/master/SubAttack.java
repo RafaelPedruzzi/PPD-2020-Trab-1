@@ -9,7 +9,7 @@ public class SubAttack {
 	private long startTime;
 	private long lastCheckpointTime;
 	private List<Range> ranges = new LinkedList<Range>();
-	private int currentindex;
+	private long currentindex;
 	private boolean done;
     // private Attack attack;
     
@@ -22,20 +22,48 @@ public class SubAttack {
 		this.done = false;
 	}
 
-	public void setCurrentIndex(int currentindex) {
+	public void setCurrentIndex(long currentindex) {
 		this.currentindex = currentindex;
 		
-		if(currentindex == ranges.get(0).getLast()) {
-            this.ranges.remove(0);	
+		synchronized (this.ranges) {
+			if(currentindex == ranges.get(0).getLast()) {
+            	this.ranges.remove(0);	
 
-            if(this.ranges.isEmpty()) {
-                this.done = true;
-            }
+            	if(this.ranges.isEmpty()) {
+                	this.done = true;
+            	}
+			}
 		}
+	}
+	
+	public Range getNextRange() {
+		synchronized (this.ranges) {
+			if (this.ranges.isEmpty()) return null;
+			this.ranges.remove(0);
+			if (this.ranges.isEmpty()) return null;
+			this.done = false;
+			return this.ranges.get(0);
+		}
+	}
+
+	public Range[] getRemainingRanges() {
+		Range[] remaining;
+		synchronized (this.ranges) {
+			remaining = new Range[this.ranges.size()];
+			remaining[0] = new Range(currentindex, this.ranges.get(0).getLast()) ;
+			int i = 1;
+			for(Range r : this.ranges) {
+				remaining[i] = r;
+				i++;
+			}
+		}
+		return remaining;
     }
     
     public void addRange(Range range) {
-        ranges.add(range);
+		synchronized (this.ranges) {
+			ranges.add(range);
+		}
     }
     
     public int getAttackerNumber() {
@@ -58,10 +86,6 @@ public class SubAttack {
 		this.lastCheckpointTime = lastCheckpointTime;
     }
 
-	public Range getRemainingRange() {
-		return new Range(currentindex, ranges.get(0).getLast());
-    }
-    
 	public boolean isDone() {
 		return this.done;
     }

@@ -134,7 +134,10 @@ public class SlaveImpl implements Serializable, Slave {
     @Override
     public void startSubAttack(byte[] ciphertext, byte[] knowntext, long initialwordindex, long finalwordindex,
             int attackNumber, SlaveManager callbackinterface) throws RemoteException {
-        System.out.println("Printei!");
+        Log.log("SLAVE", "Iniciando novo sub-attack...");
+
+        CheckpointManager cpm = new CheckpointManager(initialwordindex, callbackinterface);
+        
     }
 
     public UUID getKey() {

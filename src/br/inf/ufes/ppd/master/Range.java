@@ -1,17 +1,17 @@
 public class Range {
-    private int init;
-    private int last;
+    private long init;
+    private long last;
 
-    public Range(int init, int last) {
+    public Range(long init, long last) {
         this.init = init;
         this.last = last;
     }
 
-    public int getInit() {
+    public long getInit() {
         return this.init;
     }
 
-    public int getLast() {
+    public long getLast() {
         return last;
     }
 }

@@ -18,6 +18,7 @@ public class MasterImpl implements Master {
 
     private List<Attack> atks = new ArrayList<Attack>();
     private Map<UUID, Slave> slaves = new HashMap<UUID, Slave>();
+    private Map<UUID, String> slavesNames = new HashMap<UUID, String>();
     private ExecutorService executor = Executors.newFixedThreadPool(8);
 	private int dictionaryLength = 80368;
 	// private SlaveManager slaveCallback;
@@ -47,6 +48,7 @@ public class MasterImpl implements Master {
 
         synchronized (slaves) {
             slaves.put(slaveKey, s);
+            slavesNames.put(slaveKey, slaveName);
         }
 
         // s.startSubAttack(new byte[5], new byte[5], 0, 0, 0, this);
@@ -58,17 +60,85 @@ public class MasterImpl implements Master {
     public void removeSlave(UUID slaveKey) throws RemoteException {
         synchronized (slaves) {
             slaves.remove(slaveKey);
+            slavesNames.remove(slaveKey);
         }
     }
 
     @Override
     public void foundGuess(UUID slaveKey, int attackNumber, long currentindex, Guess currentguess) throws RemoteException {
-        // TODO
+        synchronized(this.atks) {
+            Attack attack = null;
+            for(Attack a : this.atks) {
+                if(a.getAttackNumber() == attackNumber) {
+                    attack = a;
+                    break;
+                }
+            }
+            if (attack == null) return;
+
+            long time = System.nanoTime();
+            
+            SubAttack subAttack = attack.getSubAttack(slaveKey);
+            if(subAttack == null) return;
+            
+            subAttack.setCurrentIndex(currentindex);
+            subAttack.setLastCheckpointTime(time);
+
+            long timeSinceStart = time - subAttack.getStartTime();
+            double seconds = (double) timeSinceStart / 1000000000.0;
+			
+            Log.log("MASTER", "[FoundGuess] Slave: " + this.slavesNames.get(slaveKey) + 
+                        " Index: " + currentindex + 
+                        " Chave candidata: " + currentguess.getKey() +
+                        " Tempo desde o start: " + seconds
+            );
+			
+			attack.addGuess(currentguess);
+		}
     }
 
     @Override
     public void checkpoint(UUID slaveKey, int attackNumber, long currentindex) throws RemoteException {
-        // TODO
+        synchronized(this.atks) {
+            Attack attack = null;
+
+            for(Attack a : this.atks) {
+                if(a.getAttackNumber() == attackNumber) {
+                    attack = a;
+                    break;
+                }
+            }
+
+            if (attack == null) return;
+
+            SubAttack subAttack = attack.getSubAttack(slaveKey);
+			if(subAttack == null) return;
+            
+            long time = System.nanoTime();
+			
+			subAttack.setLastCheckpointTime(time);
+            subAttack.setCurrentIndex(currentindex);
+
+            String cp = "Checkpoint";
+            if (subAttack.isDone()) {
+                cp = "Final Checkpoint";
+            }
+			
+            long timeSinceStart = time - subAttack.getStartTime();
+            double seconds = (double) timeSinceStart / 1000000000.0;
+
+            Log.log("MASTER", "[" + cp + "]" + 
+                        " Slave: " + this.slavesNames.get(slaveKey) + 
+                        " Index: " + currentindex + 
+                        " Tempo desde o start: " + seconds
+            );
+	        
+			synchronized (attack) {
+				if(attack.isDone()) {
+					attack.notifyAll();
+				}
+			}
+		}
     }
 
     @Override
@@ -96,11 +166,8 @@ public class MasterImpl implements Master {
         int i = 0;
 		synchronized (slaves) {
 			for (Map.Entry<UUID, Slave> s : slaves.entrySet()) {
-
-				// nextSubAttackID++;
-
-				int initialwordindex = (dictionaryLength / avaiableSlavesNumber) * i;
-                int finalwordindex   = (dictionaryLength / avaiableSlavesNumber) * (i + 1);
+				long initialwordindex = (dictionaryLength / avaiableSlavesNumber) * i;
+                long finalwordindex   = (dictionaryLength / avaiableSlavesNumber) * (i + 1);
 
                 SubAttack subAttack = new SubAttack(a.getAttackNumber(), new Range(initialwordindex, finalwordindex));
 
@@ -112,10 +179,9 @@ public class MasterImpl implements Master {
                     initialwordindex, 
                     finalwordindex, 
                     attackNumber, 
-                    this // (SlaveImpl) s.getMasterRef()
+                    (SlaveManager) this
                 );
 
-				// s.getValue().addCurrentSubAttackJob(nextSubAttackID);
 				i++;
 			}
 
@@ -123,72 +189,88 @@ public class MasterImpl implements Master {
         
         this.executor.execute(new AttackManager(a));
 
-		// synchronized (attack) {
-		// 	try
-		// 	{
-		// 		if(!attack.isDone())
-		// 		{
-		// 			attack.wait();
-		// 		}
-				
-		// 	}
-		// 	catch(InterruptedException e)
-		// 	{
-		// 		System.err.println("[M] Attack main thread interrupted. Returning 0 guess...");
-		// 		return new Guess[0];
-		// 	}
-		// }
+		synchronized (a) {
+			try {
+				if(!a.isDone()) {
+					a.wait();
+				}
+			} catch(InterruptedException e) {
+				Log.log("MASTER", "Ataque interrompido inesperadamente");
+				return new Guess[0];
+			}
+		}
 		
-		
-		// System.err.println("[M] Client request has finished. Returning " + attack.getFoundGuesses().size() + " found guess(es)");
-		
-		// Guess[] foundGuesses = new Guess[attack.getFoundGuesses().size()];
-		// return attack.getFoundGuesses().toArray(foundGuesses);
-
         Log.log("MASTER", "Finalizando ataque. Retornando resultados...");
-
-        return ;
+        
+		return a.getGuesses();
     }
 
     private class AttackManager implements Runnable {
         private Attack attack;
         
         public AttackManager(Attack attack) {
-        	this.attack = attack;
+            this.attack = attack;
         }
         
         public void run() {
         	while(!attack.isDone()) {   				
-        		List<UUID> attackersToRemove = new ArrayList<UUID>();
+                List<UUID> slavesToRemove = new ArrayList<UUID>();
+                
+                Map<UUID, Slave> slaves;
+                Map<UUID, String> slavesNames;
+
+                synchronized (MasterImpl.this.slaves) {
+                    slaves = MasterImpl.this.slaves;
+                    slavesNames = MasterImpl.this.slavesNames;
+                }
 
         		Map<UUID, SubAttack> subAttacks = attack.getSubAttacks();
 
         		synchronized (subAttacks) {
         			for(Map.Entry<UUID, SubAttack> s : subAttacks.entrySet()) {
                         SubAttack subAttack = s.getValue();
-                        UUID slave = s.getKey();
+                        UUID slaveKey = s.getKey();
 
-        				if(subAttack.isDone()) continue;
+        				if(subAttack.isDone()) {
+                            Range next = subAttack.getNextRange();
+                            if (next != null) {
+                                try {
+                                    slaves.get(slaveKey).startSubAttack(
+                                        this.attack.getCipherText(),
+                                        this.attack.getKnownText(),
+                                        next.getInit(),
+                                        next.getLast(),
+                                        this.attack.getAttackNumber(),
+                                        (SlaveManager) MasterImpl.this
+                                    );
+                                } catch (RemoteException e) {
+                                    Log.log("MASTER", "Remote exception");
+                                }
+                            }
+                            continue;
+                        }
         				
                         long lastCheckpointTime = subAttack.getLastCheckpointTime();
                         long timeSinceLastCheckpoint = System.nanoTime() - lastCheckpointTime;
                         double seconds = (double) timeSinceLastCheckpoint / 1000000000.0;
 
                         if(seconds > 20) {
-                            Log.log("MASTER", "O Slave [" + slave + "] sera removido");
+                            Log.log("MASTER", "O Slave [" + slavesNames.get(slaveKey) + "] sera removido");
 
+                            slavesToRemove.add(slaveKey);
                             
-                            attackersToRemove.add(slave);
-                            // attack.redirect(subAttack);
+                            MasterImpl.this.redirectSubAttack(this.attack, subAttack);
                         }
-        				
         			}
         		}
 
-        		// removing attackers marked for removal
-        		for(UUID slaveKey : attackersToRemove) {
-        			removeSlave(slaveKey);
-        		}
+                try {
+        		    for(UUID slaveKey : slavesToRemove) {
+        			    MasterImpl.this.removeSlave(slaveKey);
+                    }
+                } catch (RemoteException e) {
+                    Log.log("MASTER", "Remote exception que nunca ira aparecer");
+                }
 
         		try {
         			TimeUnit.MILLISECONDS.sleep(5 * 1000);
@@ -198,6 +280,35 @@ public class MasterImpl implements Master {
         		} 
         	}
         }
-	}
+    }
+    
+    private void redirectSubAttack(Attack attack, SubAttack subAttack) {
+        int avaiableSlavesNumber;
+        
+        synchronized (slaves) {
+            avaiableSlavesNumber = slaves.size();
+        }
 
+		if (avaiableSlavesNumber == 0) {
+            Log.log("MASTER", "Nenhum escravo disponivel para redirecionamento");
+            return;
+		}
+
+        Log.log("MASTER", "Redirecionando indices restantes do Slave...");
+
+        Range[] remainingRanges = subAttack.getRemainingRanges();
+
+        for(Range r : remainingRanges) {
+            UUID slaveKey;
+
+            synchronized (slaves) {
+                List<UUID> keys = new ArrayList<UUID>(this.slaves.keySet());
+                slaveKey = keys.get((new Random()).nextInt(keys.size()));
+            }
+            SubAttack chosenOne = attack.getSubAttack(slaveKey);
+            chosenOne.addRange(r);
+        }
+
+        Log.log("MASTER", "Redirecionamento efetuado");
+    }
 }
