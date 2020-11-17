@@ -10,6 +10,8 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import br.inf.ufes.ppd.interfaces.Master;
 import br.inf.ufes.ppd.interfaces.Slave;
@@ -21,7 +23,8 @@ public class SlaveImpl implements Serializable, Slave {
     private String name;
     private String masterAddress;
     private Master masterRef;
-    public Timer timer;
+    private ExecutorService executor = Executors.newFixedThreadPool(8);
+    public  Timer timer;
 
     public SlaveImpl(String slaveName, String masterAddress) {
         this.key = java.util.UUID.randomUUID();
@@ -54,7 +57,7 @@ public class SlaveImpl implements Serializable, Slave {
             // Slave slaveRef = (Slave) UnicastRemoteObject.exportObject(slave, 0);
             UnicastRemoteObject.exportObject(slave, 0);
 
-            achaMestre(slave);
+            findMaster(slave);
 
         } catch (Exception e) {
             Log.log("SLAVE", "Erro: Falha de comunicação com o mestre.");
@@ -62,7 +65,7 @@ public class SlaveImpl implements Serializable, Slave {
         }
     }
 
-    public static boolean achaMestre(SlaveImpl s) {
+    public static boolean findMaster(SlaveImpl s) {
         try {
             Log.log("SLAVE", "Buscando a referencia do mestre no registry...");
             Registry registry = LocateRegistry.getRegistry(s.getMasterAddress());
@@ -117,7 +120,7 @@ public class SlaveImpl implements Serializable, Slave {
                 // e.printStackTrace();
 
                 Log.log("SLAVE", "Buscando novo mestre...");
-                while (!achaMestre(s)) {
+                while (!findMaster(s)) {
                     try {
                         Log.log("SLAVE", "Mestre não encontrado. Esperando 15 segundos...");
                         Thread.sleep(15 * 1000);
@@ -136,8 +139,17 @@ public class SlaveImpl implements Serializable, Slave {
             int attackNumber, SlaveManager callbackinterface) throws RemoteException {
         Log.log("SLAVE", "Iniciando novo sub-attack...");
 
-        CheckpointManager cpm = new CheckpointManager(initialwordindex, callbackinterface);
-        
+        SubAttackManager cpm = new SubAttackManager(
+            callbackinterface, 
+            this.key, 
+            ciphertext, 
+            knowntext, 
+            initialwordindex, 
+            finalwordindex, 
+            attackNumber
+        );
+		
+		executor.execute(cpm);
     }
 
     public UUID getKey() {
