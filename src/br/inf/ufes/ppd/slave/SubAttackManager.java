@@ -1,6 +1,5 @@
 package br.inf.ufes.ppd.slave;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,11 +42,8 @@ public class SubAttackManager implements Runnable {
 
             String word = dictionary.get((int) initialwordindex);
             byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);
-
-            String decryptedStr = new String(decrypted, StandardCharsets.UTF_8);
-            String knownTextStr = new String(knowntext, StandardCharsets.UTF_8);
-
-            if (decryptedStr.contains(knownTextStr)) {
+            
+            if (this.Search(decrypted, this.knowntext)) {
                 Guess guess = new Guess();
                 guess.setKey(word);
                 guess.setMessage(decrypted);
@@ -62,10 +58,7 @@ public class SubAttackManager implements Runnable {
                 word = dictionary.get((int) i);
                 decrypted = Decrypt.decrypt(word, this.ciphertext);
 
-                decryptedStr = new String(decrypted, StandardCharsets.UTF_8);
-                knownTextStr = new String(knowntext, StandardCharsets.UTF_8);
-
-                if (decryptedStr.contains(knownTextStr)) {
+                if (this.Search(decrypted, this.knowntext)) {
                     Guess guess = new Guess();
                     guess.setKey(word);
                     guess.setMessage(decrypted);
@@ -89,6 +82,20 @@ public class SubAttackManager implements Runnable {
 
     public void setCurrentIndex(long currentindex) {
         this.currentindex = currentindex;
+    }
+
+    private boolean Search(byte[] src, byte[] pattern) {
+        int c = src.length - pattern.length + 1;
+        int j;
+        for (int i = 0; i < c; i++) {
+            if (src[i] != pattern[0])
+                continue;
+            for (j = pattern.length - 1; j >= 1 && src[i + j] == pattern[j]; j--)
+                ;
+            if (j == 0)
+                return true;
+        }
+        return false;
     }
 
     private class CheckpointTask extends TimerTask {

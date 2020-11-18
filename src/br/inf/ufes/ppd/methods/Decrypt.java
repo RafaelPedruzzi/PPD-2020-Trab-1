@@ -33,7 +33,7 @@ public class Decrypt {
 		} catch (javax.crypto.BadPaddingException e) {
 			// essa excecao e jogada quando a senha esta incorreta
 			// porem nao quer dizer que a senha esta correta se nao jogar essa excecao
-			System.out.println("Senha invalida.");
+			// System.out.println("Senha invalida.");
 			
 			return new byte[0];
 

@@ -1,6 +1,7 @@
 package br.inf.ufes.ppd.methods;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;
@@ -34,12 +35,16 @@ public class Encrypt {
 	}
 
 	public static void main(String[] args) {
-		String filename = "message.txt";
+		Scanner s = new Scanner(System.in);
+		Log.log("Encrypt", "Digite o nome do arquivo: ");
+		String filename = s.nextLine();
+		s.close();
 		
 		try {
 			byte[] message = FileManager.readFile(filename);
 	
 			byte[] encrypted = encrypt("faena", message);
+
 			FileManager.saveFile(filename + ".cipher", encrypted);
 		} catch (IOException e) {
 			e.printStackTrace();

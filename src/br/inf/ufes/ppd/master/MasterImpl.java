@@ -77,22 +77,24 @@ public class MasterImpl implements Master {
 
             long time = System.nanoTime();
             
-            SubAttack subAttack = attack.getSubAttack(slaveKey);
-            if(subAttack == null) return;
-            
-            subAttack.setCurrentIndex(currentindex);
-            subAttack.setLastCheckpointTime(time);
+            synchronized(attack) {
+                SubAttack subAttack = attack.getSubAttack(slaveKey);
+                if(subAttack == null) return;
+                
+                subAttack.setCurrentIndex(currentindex);
+                subAttack.setLastCheckpointTime(time);
 
-            long timeSinceStart = time - subAttack.getStartTime();
-            double seconds = (double) timeSinceStart / 1000000000.0;
-			
-            Log.log("MASTER", "[FoundGuess] Slave: " + this.slavesNames.get(slaveKey) + 
-                        " Index: " + currentindex + 
-                        " Chave candidata: " + currentguess.getKey() +
-                        " Tempo desde o start: " + seconds + " segundos."
-            );
-			
-			attack.addGuess(currentguess);
+                long timeSinceStart = time - subAttack.getStartTime();
+                double seconds = (double) timeSinceStart / 1000000000.0;
+                
+                Log.log("MASTER", "[FoundGuess] Slave: " + this.slavesNames.get(slaveKey) + 
+                            " Index: " + currentindex + 
+                            " Chave candidata: " + currentguess.getKey() +
+                            " Tempo desde o start: " + seconds + " segundos."
+                );
+                
+                attack.addGuess(currentguess);
+            }
 		}
     }
 

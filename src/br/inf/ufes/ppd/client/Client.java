@@ -31,12 +31,10 @@ public class Client {
 			String filename = s.nextLine();	
 			File f = new File(filename);
 			Boolean exists = f.exists() && !f.isDirectory();
-			// byte[] ciphertext = FileManager.readFile("message.txt.cipher");
 			
             Log.log("CLIENT", "Digite o trecho conhecido do texto: ");
-			// String tmp = s.nextLine();
-			// byte[] knowntext = tmp.getBytes("utf-8");
-			byte[] knowntext = "world".getBytes("utf-8");
+			String tmp = s.nextLine();
+			byte[] knowntext = tmp.getBytes("utf-8");
 
 			s.close();
 			
@@ -58,11 +56,11 @@ public class Client {
 				ciphertext = FileManager.readFile(filename);
 			} else {
 				Random r = new Random();
-				int result = r.nextInt(800001-8000) + 8000;
+				int result = r.nextInt(100000-1000) + 1000;
 				byte[] bytes = new byte[result];
 				SecureRandom.getInstanceStrong().nextBytes(bytes);
 				String word = dictionary.get(r.nextInt(80368));
-				ciphertext = Encrypt.encrypt(word, bytes);s
+				ciphertext = Encrypt.encrypt(word, bytes);
 			}
             
             Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
