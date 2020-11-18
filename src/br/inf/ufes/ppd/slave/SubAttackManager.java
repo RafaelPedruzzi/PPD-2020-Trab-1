@@ -1,12 +1,15 @@
 package br.inf.ufes.ppd.slave;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
+import br.inf.ufes.ppd.interfaces.Guess;
 import br.inf.ufes.ppd.interfaces.SlaveManager;
 import br.inf.ufes.ppd.methods.Log;
+import br.inf.ufes.ppd.methods.Decrypt;
 
 public class SubAttackManager implements Runnable {
     private SlaveManager masterRef;
@@ -31,21 +34,44 @@ public class SubAttackManager implements Runnable {
         this.slaveKey = slaveKey;
         this.dictionary = dictionary;
         this.timer = new Timer();
-        this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
     }
 
     @Override
     public void run() {
         try {
             System.out.println("initial: "+initialwordindex+" final: "+finalwordindex);
-;            for (long i = initialwordindex; i <= finalwordindex; i++) {
-                // pegar palavra i em dictionary
-                if (i == initialwordindex || i == finalwordindex) {
-                    System.out.println(this.dictionary.get((int)i));
+
+            String word = dictionary.get((int) initialwordindex);
+            byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);
+
+            String decryptedStr = new String(decrypted, StandardCharsets.UTF_8);
+            String knownTextStr = new String(knowntext, StandardCharsets.UTF_8);
+
+            if (decryptedStr.contains(knownTextStr)) {
+                Guess guess = new Guess();
+                guess.setKey(word);
+                guess.setMessage(decrypted);
+                this.masterRef.foundGuess(slaveKey,attackNumber,initialwordindex,guess);
+            }
+
+            this.currentindex = initialwordindex;
+
+            this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
+
+            for (long i = initialwordindex + 1; i <= finalwordindex; i++) {
+                word = dictionary.get((int) i);
+                decrypted = Decrypt.decrypt(word, this.ciphertext);
+
+                decryptedStr = new String(decrypted, StandardCharsets.UTF_8);
+                knownTextStr = new String(knowntext, StandardCharsets.UTF_8);
+
+                if (decryptedStr.contains(knownTextStr)) {
+                    Guess guess = new Guess();
+                    guess.setKey(word);
+                    guess.setMessage(decrypted);
+                    this.masterRef.foundGuess(slaveKey, attackNumber, i, guess);
                 }
-                // decryptografar cipher com i
-                // procurar knowtext
-                // se achou -> chama foundGuess
+
                 this.currentindex = i;
             }
             this.timer.cancel();

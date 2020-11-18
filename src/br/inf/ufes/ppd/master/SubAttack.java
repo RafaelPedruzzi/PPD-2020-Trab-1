@@ -18,7 +18,7 @@ public class SubAttack {
 		this.startTime = System.nanoTime();
         this.lastCheckpointTime = System.nanoTime();
         this.ranges.add(range);
-		this.currentindex = range.getInit();
+		this.currentindex = range.getInit() -1;
 		this.done = false;
 	}
 
@@ -49,12 +49,15 @@ public class SubAttack {
 	public Range[] getRemainingRanges() {
 		Range[] remaining;
 		synchronized (this.ranges) {
-			remaining = new Range[this.ranges.size()];
-			remaining[0] = new Range(currentindex +1, this.ranges.get(0).getLast()) ;
-			int i = 1;
-			for(Range r : this.ranges) {
-				remaining[i] = r;
-				i++;
+			int size = this.ranges.size();
+			remaining = new Range[size];
+			remaining[0] = new Range(currentindex + 1, this.ranges.get(0).getLast()) ;
+			if (size > 1) {
+				int i = 1;
+				for(Range r : this.ranges) {
+					remaining[i] = r;
+					i++;
+				}
 			}
 		}
 		return remaining;
@@ -64,6 +67,7 @@ public class SubAttack {
 		synchronized (this.ranges) {
 			ranges.add(range);
 		}
+		this.done = false;
     }
     
     public int getAttackerNumber() {

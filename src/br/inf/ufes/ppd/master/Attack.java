@@ -28,6 +28,12 @@ public class Attack {
 		}
     }
 
+	public void removeSubAttack(UUID slave) {
+		synchronized (subAttacks) {
+			this.subAttacks.remove(slave);
+		}
+	}
+
 	public SubAttack getSubAttack(UUID slave){
 		return this.subAttacks.get(slave);
 	}

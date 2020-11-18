@@ -1,7 +1,5 @@
 package br.inf.ufes.ppd.master;
 
-import java.io.UnsupportedEncodingException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -166,22 +164,36 @@ public class MasterImpl implements Master {
 
         int i = 0;
 		synchronized (slaves) {
+            int intervalSize = dictionaryLength / avaiableSlavesNumber;
+            int excedent = dictionaryLength % avaiableSlavesNumber;
+
 			for (Map.Entry<UUID, Slave> s : slaves.entrySet()) {
-				long initialwordindex = i * (dictionaryLength / avaiableSlavesNumber);
-                long finalwordindex   = ((i + 1) * (dictionaryLength / avaiableSlavesNumber)) - 1;
+				long initialwordindex = i * intervalSize;
+                long finalwordindex   = ((i + 1) * intervalSize) - 1;
+
+                if (excedent > 0 && (initialwordindex + intervalSize + excedent) == dictionaryLength){
+                    finalwordindex = dictionaryLength - 1;
+                }
 
                 SubAttack subAttack = new SubAttack(a.getAttackNumber(), new Range(initialwordindex, finalwordindex));
 
                 a.addSubAttack(s.getKey(), subAttack);
-
-                s.getValue().startSubAttack(
-                    ciphertext, 
-                    knowntext, 
-                    initialwordindex, 
-                    finalwordindex, 
-                    attackNumber, 
-                    (SlaveManager) this
-                );
+                
+                try {
+                    s.getValue().startSubAttack(
+                        ciphertext, 
+                        knowntext, 
+                        initialwordindex, 
+                        finalwordindex, 
+                        attackNumber, 
+                        (SlaveManager) this
+                    );
+                } catch (RemoteException e) {
+                    Log.log("MASTER", "Slave nao encontrado.");
+                    this.redirectSubAttack(a, subAttack);
+                    this.removeSlave(s.getKey());
+                    a.removeSubAttack(s.getKey());
+                }
 
 				i++;
 			}
@@ -252,6 +264,8 @@ public class MasterImpl implements Master {
                                     );
                                 } catch (RemoteException e) {
                                     Log.log("MASTER", "Remote exception");
+                                    slavesToRemove.add(slaveKey);
+                                    MasterImpl.this.redirectSubAttack(this.attack, subAttack);
                                 }
                             }
                             continue;
@@ -273,7 +287,8 @@ public class MasterImpl implements Master {
 
                 try {
         		    for(UUID slaveKey : slavesToRemove) {
-        			    MasterImpl.this.removeSlave(slaveKey);
+                        MasterImpl.this.removeSlave(slaveKey);
+                        attack.removeSubAttack(slaveKey);
                     }
                 } catch (RemoteException e) {
                     Log.log("MASTER", "Remote exception que nunca ira aparecer");

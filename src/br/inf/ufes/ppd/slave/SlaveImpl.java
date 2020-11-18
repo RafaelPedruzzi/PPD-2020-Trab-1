@@ -106,7 +106,7 @@ public class SlaveImpl implements Serializable, Slave {
             return false;
         } catch (Exception e) {
             Log.log("SLAVE", "Erro");
-            // e.printStackTrace();
+            e.printStackTrace();
             return false;
         }
     }

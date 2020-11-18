@@ -1,11 +1,17 @@
 package br.inf.ufes.ppd.client;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 import br.inf.ufes.ppd.interfaces.Guess;
 import br.inf.ufes.ppd.interfaces.Master;
+import br.inf.ufes.ppd.methods.Encrypt;
 import br.inf.ufes.ppd.methods.FileManager;
 import br.inf.ufes.ppd.methods.Log;
 
@@ -22,16 +28,42 @@ public class Client {
             Scanner s = new Scanner(System.in);
             
             Log.log("CLIENT", "Digite o nome do arquivo com o texto criptografado: ");
-			// String filename = s.nextLine();	
-			// byte[] ciphertext = FileManager.readFile(filename);
-			byte[] ciphertext = FileManager.readFile("message.txt.cipher");
+			String filename = s.nextLine();	
+			File f = new File(filename);
+			Boolean exists = f.exists() && !f.isDirectory();
+			// byte[] ciphertext = FileManager.readFile("message.txt.cipher");
 			
             Log.log("CLIENT", "Digite o trecho conhecido do texto: ");
 			// String tmp = s.nextLine();
 			// byte[] knowntext = tmp.getBytes("utf-8");
 			byte[] knowntext = "world".getBytes("utf-8");
 
-            s.close();
+			s.close();
+			
+			ArrayList<String> dictionary = null;
+			try {
+				Scanner s2 = new Scanner(new File("dictionary.txt"));
+				dictionary = new ArrayList<String>();
+				while (s2.hasNextLine()){
+					dictionary.add(s2.nextLine());
+				}
+				s2.close();
+			} catch (FileNotFoundException e1) {
+				Log.log("SLAVE", "Erro: Dicionario nao encontrado.");
+				System.exit(0);
+			}
+
+			byte[] ciphertext;
+			if (exists) {
+				ciphertext = FileManager.readFile(filename);
+			} else {
+				Random r = new Random();
+				int result = r.nextInt(800001-8000) + 8000;
+				byte[] bytes = new byte[result];
+				SecureRandom.getInstanceStrong().nextBytes(bytes);
+				String word = dictionary.get(r.nextInt(80368));
+				ciphertext = Encrypt.encrypt(word, bytes);s
+			}
             
             Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
 			Guess[] candidates = master.attack(ciphertext, knowntext);
