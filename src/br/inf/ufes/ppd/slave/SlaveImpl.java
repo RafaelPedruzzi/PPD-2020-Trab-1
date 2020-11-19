@@ -73,7 +73,7 @@ public class SlaveImpl implements Serializable, Slave {
         try {
             Log.log("SLAVE", "Criando referencia remota do Slave \"" + slave.getName() + "\"...");
             // Slave slaveRef = (Slave) UnicastRemoteObject.exportObject(slave, 0);
-            UnicastRemoteObject.exportObject(slave, 0);
+            // UnicastRemoteObject.exportObject(slave, 0);
 
             findMaster(slave);
 
@@ -91,8 +91,10 @@ public class SlaveImpl implements Serializable, Slave {
 
             s.setMasterRef(master);
 
+            Slave sRef = (Slave) UnicastRemoteObject.exportObject(s, 0);
+
             Log.log("SLAVE", "Registrando-se no mestre...");
-            master.addSlave(s, s.getName(), s.getKey());
+            master.addSlave(sRef, s.getName(), s.getKey());
             Log.log("SLAVE", "Registro efetuado.");
 
             s.timer = new Timer();

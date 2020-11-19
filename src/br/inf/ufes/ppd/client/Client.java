@@ -66,7 +66,11 @@ public class Client {
             Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
 			Guess[] candidates = master.attack(ciphertext, knowntext);
 			
+            Log.log("CLIENT", "Ataque concluido.");
+            Log.log("CLIENT", "Chaves candidatas encontradas:");
+
 			for(Guess g : candidates) {
+				Log.log("CLIENT", " - " + g.getKey());
 				FileManager.saveFile(g.getKey() + ".msg", g.getMessage());
             }
 			
@@ -76,5 +80,67 @@ public class Client {
 			e.printStackTrace();
 		}
 
-    }
+	}
+	
+	public static Guess[] orderAttack(String filename, String kt){
+		Log.log("CLIENT", "Iniciando o programa cliente...");
+
+		try {
+            Log.log("CLIENT", "Procurando referencia do mestre no registry...");
+			Registry registry = LocateRegistry.getRegistry("localhost");
+			Master master = (Master) registry.lookup("mestre");
+			
+            
+			File f = new File(filename);
+			Boolean exists = f.exists() && !f.isDirectory();
+			
+			byte[] knowntext = kt.getBytes("utf-8");
+
+			ArrayList<String> dictionary = null;
+			try {
+				Scanner s2 = new Scanner(new File("dictionary.txt"));
+				dictionary = new ArrayList<String>();
+				while (s2.hasNextLine()){
+					dictionary.add(s2.nextLine());
+				}
+				s2.close();
+			} catch (FileNotFoundException e1) {
+				Log.log("SLAVE", "Erro: Dicionario nao encontrado.");
+				System.exit(0);
+				return new Guess[0];
+			}
+
+			byte[] ciphertext;
+			if (exists) {
+				ciphertext = FileManager.readFile(filename);
+			} else {
+				Random r = new Random();
+				int result = r.nextInt(100000-1000) + 1000;
+				byte[] bytes = new byte[result];
+				SecureRandom.getInstanceStrong().nextBytes(bytes);
+				String word = dictionary.get(r.nextInt(80368));
+				ciphertext = Encrypt.encrypt(word, bytes);
+			}
+            
+            Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
+			Guess[] candidates = master.attack(ciphertext, knowntext);
+			
+            Log.log("CLIENT", "Ataque concluido.");
+            Log.log("CLIENT", "Chaves candidatas encontradas:");
+
+			for(Guess g : candidates) {
+				Log.log("CLIENT", " - " + g.getKey());
+				FileManager.saveFile(g.getKey() + ".msg", g.getMessage());
+            }
+			
+			Log.log("CLIENT", "Ataque finalizado com sucesso");
+			
+			return candidates;
+		} catch (Exception e) {
+			System.err.println("Client exception: " + e.toString());
+			e.printStackTrace();
+			System.exit(0);
+			return new Guess[0];
+		}
+	}
 }

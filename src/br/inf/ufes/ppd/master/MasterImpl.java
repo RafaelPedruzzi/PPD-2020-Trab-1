@@ -23,12 +23,14 @@ public class MasterImpl implements Master {
 
     public static void main(String[] args) {
         try {
-            System.setProperty("java.rmi.server.hostname", "localhost");
-            Registry registry = LocateRegistry.createRegistry(1099);
+            // System.setProperty("java.rmi.server.hostname", "localhost");
+            // Registry registry = LocateRegistry.createRegistry(1099);
 
             Log.log("MASTER", "Criando referencia remota do mestre...");
             MasterImpl master = new MasterImpl();
             Master masterRef = (Master) UnicastRemoteObject.exportObject(master, 0);
+
+            Registry registry = LocateRegistry.getRegistry();
 
             Log.log("MASTER", "Fazendo o binding do mestre no registry...");
             registry.rebind("mestre", masterRef);
@@ -37,6 +39,7 @@ public class MasterImpl implements Master {
         } catch (Exception e) {
             Log.log("MASTER", "Erro: Mestre não pode ser registrado: ");
             e.printStackTrace();
+            System.exit(1);
         }
     }
 
