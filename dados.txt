@@ -1,0 +1,4 @@
+tests/test1.txt.cipher - seconds: 11.5783636
+tests/test2.txt.cipher - seconds: 24.6980689
+tests/test3.txt.cipher - seconds: 33.5041979
+tests/test4.txt.cipher - seconds: 44.3403626

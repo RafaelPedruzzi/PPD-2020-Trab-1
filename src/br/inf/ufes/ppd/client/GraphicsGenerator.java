@@ -1,31 +1,49 @@
 package br.inf.ufes.ppd.client;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 import br.inf.ufes.ppd.interfaces.Guess;
 import br.inf.ufes.ppd.methods.Log;
 
 public class GraphicsGenerator {
     
     public static void main(String[] args) {
-        String[] files = { "tests/text1.txt.chipher", 
-                           "tests/text2.txt.chipher", 
-                           "tests/text3.txt.chipher", 
-                           "tests/text4.txt.chipher"
+        String[] files = { "tests/test1.txt.cipher", 
+                           "tests/test2.txt.cipher", 
+                           "tests/test3.txt.cipher", 
+                           "tests/test4.txt.cipher"
                          };
-    
-        String[] knowntext = { "ac", "est", "non", "eu"};
+                         
+        // System.out.println("Working Directory = " + System.getProperty("user.dir"));
+        String[] knowntext = { "sit", "est", "non", "sem"};
 
         Log.log("GG", "Iniciando procedimento...");
         
-        for(int i = 0; i < files.length; i++) {
-            long start = System.nanoTime();
-            Guess[] ans = Client.orderAttack(files[i], knowntext[i]);
-            long end = System.nanoTime();
+        // double[] times = new double[files.length];
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+            new FileOutputStream("dados.txt"), "utf-8"))) {
+            for(int i = 0; i < files.length ; i++) {
+                long start = System.nanoTime();
+                Client.orderAttack(files[i], knowntext[i]);
+                long end = System.nanoTime();
 
-            long time = end - start;
-            double seconds = (double) time / 1000000000.0;
+                long time = end - start;
+                double seconds = (double) time / 1000000000.0;
+
+                String result = files[i] + " - seconds: " + seconds;
+                System.out.println(result);
+                writer.write(result + "\n");
+                // times[i] = seconds;
+            }
+        
+        } catch (Exception e) {
+            System.out.println("deu pau");
         }
-
-
+        // System.out.println(files);
+        // System.out.println(times);
 
         
     }

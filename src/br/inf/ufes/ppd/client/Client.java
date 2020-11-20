@@ -55,6 +55,8 @@ public class Client {
 			if (exists) {
 				ciphertext = FileManager.readFile(filename);
 			} else {
+				Log.log("CLIENT", "Arquivo nao encontrado.");
+				Log.log("CLIENT", "Gerando um arquivo aleatório...");
 				Random r = new Random();
 				int result = r.nextInt(100000-1000) + 1000;
 				byte[] bytes = new byte[result];
@@ -114,6 +116,8 @@ public class Client {
 			if (exists) {
 				ciphertext = FileManager.readFile(filename);
 			} else {
+				Log.log("CLIENT", "Arquivo nao encontrado.");
+				Log.log("CLIENT", "Gerando um arquivo aleatório...");
 				Random r = new Random();
 				int result = r.nextInt(100000-1000) + 1000;
 				byte[] bytes = new byte[result];
@@ -130,7 +134,7 @@ public class Client {
 
 			for(Guess g : candidates) {
 				Log.log("CLIENT", " - " + g.getKey());
-				FileManager.saveFile(g.getKey() + ".msg", g.getMessage());
+				// FileManager.saveFile(g.getKey() + ".msg", g.getMessage());
             }
 			
 			Log.log("CLIENT", "Ataque finalizado com sucesso");

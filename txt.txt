@@ -1,0 +1,8 @@
+Compilar:
+javac .\src\br\inf\ufes\ppd\client\*.java .\src\br\inf\ufes\ppd\interfaces\*.java .\src\br\inf\ufes\ppd\master\*.java .\src\br\inf\ufes\ppd\methods\*.java .\src\br\inf\ufes\ppd\slave\*.java -d bin
+
+Exec:
+java -cp . src.br.inf.ufes.ppd.(nome da classe)
+
+SSH:
+ssh -tt 2017100203@processamento-paralelo.inf.ufes.br ssh 2017100203@10.10.10.1

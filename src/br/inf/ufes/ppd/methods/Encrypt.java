@@ -22,7 +22,7 @@ public class Encrypt {
 			Cipher cipher = Cipher.getInstance("Blowfish");
 			cipher.init(Cipher.ENCRYPT_MODE, keySpec);
 
-			System.out.println("message size (bytes) = " + message.length);
+			// System.out.println("message size (bytes) = " + message.length);
 
 			byte[] encrypted = cipher.doFinal(message);
 
