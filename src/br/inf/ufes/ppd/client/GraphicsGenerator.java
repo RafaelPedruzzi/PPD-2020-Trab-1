@@ -17,12 +17,10 @@ public class GraphicsGenerator {
                            "../tests/test4.txt.cipher"
                          };
                          
-        // System.out.println("Working Directory = " + System.getProperty("user.dir"));
         String[] knowntext = { "sit", "est", "non", "sem"};
 
         Log.log("GG", "Iniciando procedimento...");
         
-        // double[] times = new double[files.length];
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream("dados.txt"), "utf-8"))) {
             for(int i = 0; i < files.length ; i++) {
@@ -36,14 +34,11 @@ public class GraphicsGenerator {
                 String result = files[i] + " - seconds: " + seconds;
                 System.out.println(result);
                 writer.write(result + "\n");
-                // times[i] = seconds;
             }
         
         } catch (Exception e) {
             System.out.println("deu pau");
         }
-        // System.out.println(files);
-        // System.out.println(times);
 
         
     }
