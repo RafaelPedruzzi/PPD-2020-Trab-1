@@ -57,7 +57,7 @@ public class SlaveImpl implements Serializable, Slave {
 
         ArrayList<String> dictionary = null;
         try {
-            Scanner s2 = new Scanner(new File("dictionary.txt"));
+            Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
             dictionary = new ArrayList<String>();
             while (s2.hasNextLine()){
                 dictionary.add(s2.nextLine());
@@ -159,7 +159,7 @@ public class SlaveImpl implements Serializable, Slave {
             int attackNumber, SlaveManager callbackinterface) throws RemoteException {
         Log.log("SLAVE", "Iniciando novo sub-attack...");
 
-        SubAttackManager cpm = new SubAttackManager(
+        SubAttackManager sam = new SubAttackManager(
             callbackinterface, 
             this.key, 
             ciphertext, 
@@ -170,7 +170,7 @@ public class SlaveImpl implements Serializable, Slave {
             this.dictionary
         );
 		
-		executor.execute(cpm);
+		executor.execute(sam);
     }
 
     public UUID getKey() {

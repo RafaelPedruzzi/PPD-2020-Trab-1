@@ -11,10 +11,10 @@ import br.inf.ufes.ppd.methods.Log;
 public class GraphicsGenerator {
     
     public static void main(String[] args) {
-        String[] files = { "tests/test1.txt.cipher", 
-                           "tests/test2.txt.cipher", 
-                           "tests/test3.txt.cipher", 
-                           "tests/test4.txt.cipher"
+        String[] files = { "../tests/test1.txt.cipher", 
+                           "../tests/test2.txt.cipher", 
+                           "../tests/test3.txt.cipher", 
+                           "../tests/test4.txt.cipher"
                          };
                          
         // System.out.println("Working Directory = " + System.getProperty("user.dir"));

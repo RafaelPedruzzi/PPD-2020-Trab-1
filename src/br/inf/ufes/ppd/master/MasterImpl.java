@@ -23,7 +23,7 @@ public class MasterImpl implements Master {
 
     public static void main(String[] args) {
         try {
-            System.setProperty("java.rmi.server.hostname", "localhost");
+            System.setProperty("java.rmi.server.hostname", "10.10.10.1");
             Registry registry = LocateRegistry.createRegistry(1099);
 
             Log.log("MASTER", "Criando referencia remota do mestre...");
@@ -35,6 +35,8 @@ public class MasterImpl implements Master {
             Log.log("MASTER", "Fazendo o binding do mestre no registry...");
             registry.rebind("mestre", masterRef);
             Log.log("MASTER", "Binding concluido. Master's ready!");
+
+            while(true);
 
         } catch (Exception e) {
             Log.log("MASTER", "Erro: Mestre não pode ser registrado: ");
@@ -310,32 +312,39 @@ public class MasterImpl implements Master {
     }
     
     private void redirectSubAttack(Attack attack, SubAttack subAttack) {
-        int avaiableSlavesNumber;
-        
-        synchronized (slaves) {
-            avaiableSlavesNumber = slaves.size();
-        }
-
-		if (avaiableSlavesNumber == 0) {
-            Log.log("MASTER", "Nenhum escravo disponivel para redirecionamento");
-            return;
-		}
-
-        Log.log("MASTER", "Redirecionando indices restantes do Slave...");
-
-        Range[] remainingRanges = subAttack.getRemainingRanges();
-
-        for(Range r : remainingRanges) {
-            UUID slaveKey;
-
+        try {
+            int avaiableSlavesNumber;
+            
             synchronized (slaves) {
-                List<UUID> keys = new ArrayList<UUID>(this.slaves.keySet());
-                slaveKey = keys.get((new Random()).nextInt(keys.size()));
+                avaiableSlavesNumber = slaves.size();
             }
-            SubAttack chosenOne = attack.getSubAttack(slaveKey);
-            chosenOne.addRange(r);
-        }
 
-        Log.log("MASTER", "Redirecionamento efetuado");
+            if (avaiableSlavesNumber == 0) {
+                Log.log("MASTER", "Nenhum escravo disponivel para redirecionamento");
+                return;
+            }
+
+            Log.log("MASTER", "Redirecionando indices restantes do Slave...");
+
+            Range[] remainingRanges = subAttack.getRemainingRanges();
+
+            for(Range r : remainingRanges) {
+                UUID slaveKey;
+
+                synchronized (slaves) {
+                    List<UUID> keys = new ArrayList<UUID>(this.slaves.keySet());
+                    slaveKey = keys.get((new Random()).nextInt(keys.size()));
+                }
+                SubAttack chosenOne = attack.getSubAttack(slaveKey);
+                chosenOne.addRange(r);
+            }
+
+            Log.log("MASTER", "Redirecionamento efetuado");
+        } catch (Exception e) {
+            Log.log("MASTER", "Redirecionamento falhou");
+            Log.log("MASTER", "Encerrando programa");
+            // e.printStackTrace();
+            System.exit(0);
+        }
     }
 }

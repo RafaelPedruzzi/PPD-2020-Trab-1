@@ -1,8 +1,69 @@
 Compilar:
-javac .\src\br\inf\ufes\ppd\client\*.java .\src\br\inf\ufes\ppd\interfaces\*.java .\src\br\inf\ufes\ppd\master\*.java .\src\br\inf\ufes\ppd\methods\*.java .\src\br\inf\ufes\ppd\slave\*.java -d bin
+javac ./src/br/inf/ufes/ppd/client/*.java ./src/br/inf/ufes/ppd/interfaces/*.java ./src/br/inf/ufes/ppd/master/*.java ./src/br/inf/ufes/ppd/methods/*.java ./src/br/inf/ufes/ppd/slave/*.java -d bin
 
 Exec:
-java -cp . src.br.inf.ufes.ppd.(nome da classe)
+java -cp . br.inf.ufes.ppd.(nome da classe)
+
+Envio de arquivos:
+scp arquivo.zip 2017100203@processamento-paralelo.inf.ufes.br:
 
 SSH:
-ssh -tt 2017100203@processamento-paralelo.inf.ufes.br ssh 2017100203@10.10.10.1
+ssh -tt 2017100203@processamento-paralelo.inf.ufes.br ssh 2017100203@10.10.10.1:
+
+Senha:
+PQGfjwtj7QMabbgm
+
+
+tar -cvf ppd.tar ..\PPD-2020-Trab-1
+
+tar -xvf ppd.tar
+
+File SZ | Nº de Slaves | Tempo
+50k     | 2            | 84.957784782
+100k    | 2            | 157.855352618
+150k    | 2            | 235.610801559
+200k    | 2            | 310.771303306
+
+overhead| 2            |  
+
+50k     | 3            | 53.629465838
+100k    | 3            | 107.277532968
+150k    | 3            | 155.136252361
+200k    | 3            | 206.92171052
+
+overhead| 3            |  
+
+50k     | 4            | 41.771415792
+100k    | 4            | 81.631810439
+150k    | 4            | 116.209738053
+200k    | 4            | 157.632811493
+
+overhead| 4            |  
+
+50k     | 5            | 
+100k    | 5            | 
+150k    | 5            | 
+200k    | 5            | 
+
+overhead| 5            |  
+
+50k     | 6            | 
+100k    | 6            | 
+150k    | 6            | 
+200k    | 6            | 
+
+overhead| 6            |  
+
+50k     | 7            | 
+100k    | 7            | 
+150k    | 7            | 
+200k    | 7            | 
+
+overhead| 7            |  
+
+50k     | 8            | 
+100k    | 8            | 
+150k    | 8            | 
+200k    | 8            | 
+
+overhead| 8            |  

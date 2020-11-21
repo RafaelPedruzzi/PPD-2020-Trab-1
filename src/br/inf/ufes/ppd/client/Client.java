@@ -40,7 +40,7 @@ public class Client {
 			
 			ArrayList<String> dictionary = null;
 			try {
-				Scanner s2 = new Scanner(new File("dictionary.txt"));
+				Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
 				dictionary = new ArrayList<String>();
 				while (s2.hasNextLine()){
 					dictionary.add(s2.nextLine());
@@ -100,7 +100,7 @@ public class Client {
 
 			ArrayList<String> dictionary = null;
 			try {
-				Scanner s2 = new Scanner(new File("dictionary.txt"));
+				Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
 				dictionary = new ArrayList<String>();
 				while (s2.hasNextLine()){
 					dictionary.add(s2.nextLine());
