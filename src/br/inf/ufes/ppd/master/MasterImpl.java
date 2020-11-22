@@ -23,7 +23,7 @@ public class MasterImpl implements Master {
 
     public static void main(String[] args) {
         try {
-            System.setProperty("java.rmi.server.hostname", "10.10.10.1");
+            System.setProperty("java.rmi.server.hostname", "localhost");
             Registry registry = LocateRegistry.createRegistry(1099);
 
             Log.log("MASTER", "Criando referencia remota do mestre...");

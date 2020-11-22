@@ -2,68 +2,75 @@ Compilar:
 javac ./src/br/inf/ufes/ppd/client/*.java ./src/br/inf/ufes/ppd/interfaces/*.java ./src/br/inf/ufes/ppd/master/*.java ./src/br/inf/ufes/ppd/methods/*.java ./src/br/inf/ufes/ppd/slave/*.java -d bin
 
 Exec:
-java -cp . br.inf.ufes.ppd.(nome da classe)
+java -cp . br.inf.ufes.ppd.
 
 Envio de arquivos:
-scp arquivo.zip 2017100203@processamento-paralelo.inf.ufes.br:
+scp ppd.tar 2017100203@processamento-paralelo.inf.ufes.br:
 
 SSH:
-ssh -tt 2017100203@processamento-paralelo.inf.ufes.br ssh 2017100203@10.10.10.1:
+ssh -tt 2017100203@processamento-paralelo.inf.ufes.br ssh 2017100203@10.10.10.1
 
 Senha:
 PQGfjwtj7QMabbgm
 
 
-tar -cvf ppd.tar ..\PPD-2020-Trab-1
+tar -cvf ppd.tar ../PPD-2020-Trab-1
 
 tar -xvf ppd.tar
 
 File SZ | Nº de Slaves | Tempo
+
+50k     | Sequencial   | 164.916114151
+100k    | Sequencial   | 319.682700881
+150k    | Sequencial   | 
+200k    | Sequencial   | 
+
+
 50k     | 2            | 84.957784782
 100k    | 2            | 157.855352618
 150k    | 2            | 235.610801559
 200k    | 2            | 310.771303306
 
-overhead| 2            |  
+overhead| 2            |  3.509877913
 
 50k     | 3            | 53.629465838
 100k    | 3            | 107.277532968
 150k    | 3            | 155.136252361
 200k    | 3            | 206.92171052
 
-overhead| 3            |  
+overhead| 3            |  3.442766003
 
 50k     | 4            | 41.771415792
 100k    | 4            | 81.631810439
 150k    | 4            | 116.209738053
 200k    | 4            | 157.632811493
 
-overhead| 4            |  
+overhead| 4            |  3.749514742
 
-50k     | 5            | 
-100k    | 5            | 
-150k    | 5            | 
-200k    | 5            | 
+50k     | 5            | 33.259863053
+100k    | 5            | 66.563453374
+150k    | 5            | 95.230252173
+200k    | 5            | 127.042588211
 
-overhead| 5            |  
+overhead| 5            |  3.601157822
 
-50k     | 6            | 
-100k    | 6            | 
-150k    | 6            | 
-200k    | 6            | 
+50k     | 6            | 23.769999111
+100k    | 6            | 52.781828282
+150k    | 6            | 78.780630861
+200k    | 6            | 103.170493429
 
-overhead| 6            |  
+overhead| 6            |  3.825621954
 
-50k     | 7            | 
-100k    | 7            | 
-150k    | 7            | 
-200k    | 7            | 
+50k     | 7            | 24.419383026
+100k    | 7            | 44.372432075
+150k    | 7            | 69.786462304
+200k    | 7            | 92.437961267
 
-overhead| 7            |  
+overhead| 7            |  3.928636487
 
-50k     | 8            | 
-100k    | 8            | 
-150k    | 8            | 
-200k    | 8            | 
+50k     | 8            | 37.213903426
+100k    | 8            | 74.683059492
+150k    | 8            | 111.962949976
+200k    | 8            | 147.880599745
 
-overhead| 8            |  
+overhead| 8            |  4.255365332
