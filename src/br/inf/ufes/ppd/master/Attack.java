@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import br.inf.ufes.ppd.interfaces.Guess;
+import br.inf.ufes.ppd.Guess;
 
 public class Attack {
     private Map<UUID, SubAttack> subAttacks = new HashMap<UUID, SubAttack>();

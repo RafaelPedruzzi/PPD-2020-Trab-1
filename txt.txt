@@ -1,5 +1,5 @@
 Compilar:
-javac ./src/br/inf/ufes/ppd/client/*.java ./src/br/inf/ufes/ppd/interfaces/*.java ./src/br/inf/ufes/ppd/master/*.java ./src/br/inf/ufes/ppd/methods/*.java ./src/br/inf/ufes/ppd/slave/*.java -d bin
+javac ./src/br/inf/ufes/ppd/client/*.java ./src/br/inf/ufes/ppd/*.java ./src/br/inf/ufes/ppd/master/*.java ./src/br/inf/ufes/ppd/methods/*.java ./src/br/inf/ufes/ppd/slave/*.java -d bin
 
 Exec:
 java -cp . br.inf.ufes.ppd.
@@ -22,7 +22,7 @@ File SZ | Nº de Slaves | Tempo
 
 50k     | Sequencial   | 164.916114151
 100k    | Sequencial   | 319.682700881
-150k    | Sequencial   | 
+150k    | Sequencial   | 474.739304538
 200k    | Sequencial   | 
 
 

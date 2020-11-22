@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-import br.inf.ufes.ppd.interfaces.Guess;
+import br.inf.ufes.ppd.Guess;
 import br.inf.ufes.ppd.methods.Decrypt;
 import br.inf.ufes.ppd.methods.FileManager;
 import br.inf.ufes.ppd.methods.Log;
@@ -47,6 +47,7 @@ public class Sequencial {
         
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream("dadosSeq.txt"), "utf-8"))) {
+
             for(int i = 0; i < files.length ; i++) {
                 long start = System.nanoTime();
 

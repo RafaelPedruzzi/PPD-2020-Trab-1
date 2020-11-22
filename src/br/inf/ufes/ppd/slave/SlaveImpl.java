@@ -16,9 +16,9 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import br.inf.ufes.ppd.interfaces.Master;
-import br.inf.ufes.ppd.interfaces.Slave;
-import br.inf.ufes.ppd.interfaces.SlaveManager;
+import br.inf.ufes.ppd.Master;
+import br.inf.ufes.ppd.Slave;
+import br.inf.ufes.ppd.SlaveManager;
 import br.inf.ufes.ppd.methods.Log;
 
 public class SlaveImpl implements Serializable, Slave {

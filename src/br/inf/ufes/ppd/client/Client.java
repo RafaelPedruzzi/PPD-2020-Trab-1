@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
-import br.inf.ufes.ppd.interfaces.Guess;
-import br.inf.ufes.ppd.interfaces.Master;
+import br.inf.ufes.ppd.Guess;
+import br.inf.ufes.ppd.Master;
 import br.inf.ufes.ppd.methods.Encrypt;
 import br.inf.ufes.ppd.methods.FileManager;
 import br.inf.ufes.ppd.methods.Log;

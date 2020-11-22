@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import br.inf.ufes.ppd.interfaces.*;
+import br.inf.ufes.ppd.*;
 import br.inf.ufes.ppd.methods.Log;
 
 public class MasterImpl implements Master {

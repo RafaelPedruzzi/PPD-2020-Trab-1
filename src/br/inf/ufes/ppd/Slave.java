@@ -1,4 +1,4 @@
-package br.inf.ufes.ppd.interfaces;
+package br.inf.ufes.ppd;
 
 
 

@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import br.inf.ufes.ppd.interfaces.Guess;
+import br.inf.ufes.ppd.Guess;
 import br.inf.ufes.ppd.methods.Log;
 
 public class GraphicsGenerator {

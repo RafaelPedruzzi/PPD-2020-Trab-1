@@ -5,8 +5,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 
-import br.inf.ufes.ppd.interfaces.Guess;
-import br.inf.ufes.ppd.interfaces.SlaveManager;
+import br.inf.ufes.ppd.Guess;
+import br.inf.ufes.ppd.SlaveManager;
 import br.inf.ufes.ppd.methods.Log;
 import br.inf.ufes.ppd.methods.Decrypt;
 
@@ -40,34 +40,34 @@ public class SubAttackManager implements Runnable {
         try {
             Log.log("SLAVE", "initial index: "+initialwordindex+" final index: "+finalwordindex);
 
-            // String word = dictionary.get((int) initialwordindex);
-            // byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);
+            String word = dictionary.get((int) initialwordindex);
+            byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);
             
-            // if (this.Search(decrypted, this.knowntext)) {
-            //     Guess guess = new Guess();
-            //     guess.setKey(word);
-            //     guess.setMessage(decrypted);
-            //     this.masterRef.foundGuess(slaveKey,attackNumber,initialwordindex,guess);
-            // }
+            if (this.Search(decrypted, this.knowntext)) {
+                Guess guess = new Guess();
+                guess.setKey(word);
+                guess.setMessage(decrypted);
+                this.masterRef.foundGuess(slaveKey,attackNumber,initialwordindex,guess);
+            }
 
             this.currentindex = finalwordindex;
 
-            // this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
+            this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
 
-            // for (long i = initialwordindex + 1; i <= finalwordindex; i++) {
-            //     word = dictionary.get((int) i);
-            //     decrypted = Decrypt.decrypt(word, this.ciphertext);
+            for (long i = initialwordindex + 1; i <= finalwordindex; i++) {
+                word = dictionary.get((int) i);
+                decrypted = Decrypt.decrypt(word, this.ciphertext);
 
-            //     if (this.Search(decrypted, this.knowntext)) {
-            //         Guess guess = new Guess();
-            //         guess.setKey(word);
-            //         guess.setMessage(decrypted);
-            //         this.masterRef.foundGuess(slaveKey, attackNumber, i, guess);
-            //     }
+                if (this.Search(decrypted, this.knowntext)) {
+                    Guess guess = new Guess();
+                    guess.setKey(word);
+                    guess.setMessage(decrypted);
+                    this.masterRef.foundGuess(slaveKey, attackNumber, i, guess);
+                }
 
-            //     this.currentindex = i;
-            // }
-            // this.timer.cancel();
+                this.currentindex = i;
+            }
+            this.timer.cancel();
             Log.log("SLAVE", "SubAttack concluido");
             synchronized(this.masterRef) {
                 this.masterRef.checkpoint(this.slaveKey, this.attackNumber, this.currentindex);
