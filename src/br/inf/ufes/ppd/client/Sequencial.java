@@ -48,7 +48,7 @@ public class Sequencial {
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
             new FileOutputStream("dadosSeq.txt"), "utf-8"))) {
 
-            for(int i = 0; i < files.length ; i++) {
+            for(int i = 3; i < files.length ; i++) {
                 long start = System.nanoTime();
 
                 List<Guess> guesses = new LinkedList<Guess>();
@@ -68,10 +68,14 @@ public class Sequencial {
                     decrypted = Decrypt.decrypt(word, ciphertext);
 
                     if (Search(decrypted, knowntext)) {
+                        Log.log("Seq", "Eu found um guess");
                         Guess guess = new Guess();
                         guess.setKey(word);
                         guess.setMessage(decrypted);
                         guesses.add(guess);
+                    }
+                    if( j % 10000 == 0) {
+                        System.out.print(".");
                     }
                 }
 

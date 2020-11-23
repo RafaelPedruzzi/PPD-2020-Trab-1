@@ -23,7 +23,7 @@ File SZ | Nº de Slaves | Tempo
 50k     | Sequencial   | 164.916114151
 100k    | Sequencial   | 319.682700881
 150k    | Sequencial   | 474.739304538
-200k    | Sequencial   | 
+200k    | Sequencial   | 623.256919687
 
 
 50k     | 2            | 84.957784782
