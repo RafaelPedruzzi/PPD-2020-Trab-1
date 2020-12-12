@@ -30,7 +30,7 @@ public class Client {
             Log.log("CLIENT", "Digite o nome do arquivo com o texto criptografado: ");
 			String filename = s.nextLine();	
 			File f = new File(filename);
-			Boolean exists = f.exists() && !f.isDirectory();
+			Boolean exists = f.exists() && !f.isDirectory(); // verificando se o arquivo passado existe (ou, pelo menos, se foi encontrado)
 			
             Log.log("CLIENT", "Digite o trecho conhecido do texto: ");
 			String tmp = s.nextLine();
@@ -38,9 +38,11 @@ public class Client {
 
 			s.close();
 			
+			// Buscando dicionário 
 			ArrayList<String> dictionary = null;
 			try {
 				Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
+				// Scanner s2 = new Scanner(new File("../dictionary.txt"));
 				dictionary = new ArrayList<String>();
 				while (s2.hasNextLine()){
 					dictionary.add(s2.nextLine());
@@ -51,6 +53,7 @@ public class Client {
 				System.exit(0);
 			}
 
+			// Lendo arquivo com a mensagem ou gerando nova menságem aleatória, caso ele não exista
 			byte[] ciphertext;
 			if (exists) {
 				ciphertext = FileManager.readFile(filename);
@@ -68,7 +71,9 @@ public class Client {
             Log.log("CLIENT", "Chamando o mestre e iniciando o ataque...");
 			Guess[] candidates = master.attack(ciphertext, knowntext);
 			
-            Log.log("CLIENT", "Ataque concluido.");
+			Log.log("CLIENT", "Ataque concluido.");
+			
+			// Imprimindo chaves encontradas na saída padrão e em arquivos
             Log.log("CLIENT", "Chaves candidatas encontradas:");
 
 			for(Guess g : candidates) {
@@ -84,6 +89,7 @@ public class Client {
 
 	}
 	
+	// Método equivalente a main que abstrai comunicação com o usuário
 	public static Guess[] orderAttack(String filename, String kt){
 		Log.log("CLIENT", "Iniciando o programa cliente...");
 
@@ -95,12 +101,13 @@ public class Client {
             
 			File f = new File(filename);
 			Boolean exists = f.exists() && !f.isDirectory();
-			
+
 			byte[] knowntext = kt.getBytes("utf-8");
 
 			ArrayList<String> dictionary = null;
 			try {
 				Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
+				// Scanner s2 = new Scanner(new File("../dictionary.txt"));
 				dictionary = new ArrayList<String>();
 				while (s2.hasNextLine()){
 					dictionary.add(s2.nextLine());

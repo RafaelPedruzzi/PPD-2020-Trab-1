@@ -1,5 +1,6 @@
 package br.inf.ufes.ppd.master;
 
+// Classe auxiliar utilizada para armazenar um intervalo de índices para avaliação
 public class Range {
     private long init;
     private long last;

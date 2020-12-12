@@ -38,11 +38,13 @@ public class SubAttackManager implements Runnable {
     @Override
     public void run() {
         try {
+            // Imprimindo índices recebidos
             Log.log("SLAVE", "initial index: "+initialwordindex+" final index: "+finalwordindex);
 
-            String word = dictionary.get((int) initialwordindex);
-            byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);
+            String word = dictionary.get((int) initialwordindex);       // recuperando uma palavra do dicionário
+            byte[] decrypted = Decrypt.decrypt(word, this.ciphertext);  // aplicando decriptação
             
+            // Verificando se a palavra conhecida encontra-se no texto decriptado
             if (this.Search(decrypted, this.knowntext)) {
                 Guess guess = new Guess();
                 guess.setKey(word);
@@ -50,10 +52,12 @@ public class SubAttackManager implements Runnable {
                 this.masterRef.foundGuess(slaveKey,attackNumber,initialwordindex,guess);
             }
 
-            this.currentindex = finalwordindex;
+            // this.currentindex = finalwordindex; // Para calculo de overhead
 
+            // Iniciando um Timer para realizar checkpoints periódicos
             this.timer.scheduleAtFixedRate(new CheckpointTask(), 0, 10 * 1000);
 
+            // Repetindo o processo para os demais índices
             for (long i = initialwordindex + 1; i <= finalwordindex; i++) {
                 word = dictionary.get((int) i);
                 decrypted = Decrypt.decrypt(word, this.ciphertext);
@@ -67,8 +71,11 @@ public class SubAttackManager implements Runnable {
 
                 this.currentindex = i;
             }
+
+            // Fim do sub-ataque. Encerrando timer
             this.timer.cancel();
             Log.log("SLAVE", "SubAttack concluido");
+            // Enviando checkpoint final
             synchronized(this.masterRef) {
                 this.masterRef.checkpoint(this.slaveKey, this.attackNumber, this.currentindex);
             }
@@ -84,6 +91,8 @@ public class SubAttackManager implements Runnable {
         this.currentindex = currentindex;
     }
 
+    // Método para comparação de vetores de bytes
+    // Fonte: stack overflow
     private boolean Search(byte[] src, byte[] pattern) {
         int c = src.length - pattern.length + 1;
         int j;
@@ -98,6 +107,7 @@ public class SubAttackManager implements Runnable {
         return false;
     }
 
+    // TimerTask que realiza checkpoints periódicos
     private class CheckpointTask extends TimerTask {
         @Override
         public void run() {
@@ -111,7 +121,6 @@ public class SubAttackManager implements Runnable {
 
             } catch (Exception e) {
                 Log.log("SLAVE", "Erro: Checkpoint falhou");
-                // e.printStackTrace();
 
                 cp.timer.cancel();
             }

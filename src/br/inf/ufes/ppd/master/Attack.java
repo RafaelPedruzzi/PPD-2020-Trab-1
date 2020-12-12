@@ -49,6 +49,7 @@ public class Attack {
 	public boolean isDone() {
 		if (this.done) return true;
 		
+		// Verificando se todos os sub-ataques já encerraram
 		synchronized (this.subAttacks) {
 			for(SubAttack subAttack : this.subAttacks.values()) {
 				if(subAttack.isDone() == false) {

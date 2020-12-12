@@ -43,21 +43,19 @@ public class SlaveImpl implements Serializable, Slave {
 
         Scanner s = new Scanner(System.in);
 
-        // String masterAddress = args[0];
-        // String masterAddress = "localhost";
         Log.log("SLAVE", "Digite o master address: ");
         String masterAddress = s.next();
 
-        // String slaveName = args[1];
-        // String slaveName = "Slave01";
         Log.log("SLAVE", "Digite o nome do Slave: ");
         String slaveName = s.next();
 
         s.close();
 
+        // Recuperando dicionário
         ArrayList<String> dictionary = null;
         try {
             Scanner s2 = new Scanner(new File("/tmp/dictionary.txt"));
+            // Scanner s2 = new Scanner(new File("../dictionary.txt"));
             dictionary = new ArrayList<String>();
             while (s2.hasNextLine()){
                 dictionary.add(s2.nextLine());
@@ -72,9 +70,9 @@ public class SlaveImpl implements Serializable, Slave {
 
         try {
             Log.log("SLAVE", "Criando referencia remota do Slave \"" + slave.getName() + "\"...");
-            // Slave slaveRef = (Slave) UnicastRemoteObject.exportObject(slave, 0);
             UnicastRemoteObject.exportObject(slave, 0);
 
+            // Buscando referência do mestre
             findMaster(slave);
 
         } catch (Exception e) {
@@ -83,20 +81,20 @@ public class SlaveImpl implements Serializable, Slave {
         }
     }
 
+    // Metodo que encontra a referência para o mestre
     public static boolean findMaster(SlaveImpl s) {
         try {
             Log.log("SLAVE", "Buscando a referencia do mestre no registry...");
             Registry registry = LocateRegistry.getRegistry(s.getMasterAddress());
             Master master = (Master) registry.lookup("mestre");
 
-            s.setMasterRef(master);
-
-            // Slave sRef = (Slave) UnicastRemoteObject.exportObject(s, 0);
+            s.setMasterRef(master); // salvando/atualizando referência do mestre
 
             Log.log("SLAVE", "Registrando-se no mestre...");
             master.addSlave(s, s.getName(), s.getKey());
             Log.log("SLAVE", "Registro efetuado.");
 
+            // Criando uma thread para realizar re-registro periódico
             s.timer = new Timer();
             s.timer.scheduleAtFixedRate(new SlaveRegister(s.getMasterRef(), s, s.getName(), s.getKey(), s.timer),
                     30 * 1000, 30 * 1000);
@@ -113,6 +111,7 @@ public class SlaveImpl implements Serializable, Slave {
         }
     }
 
+    // Classe auxiliar que realiza o re-registro periódico
     private static class SlaveRegister extends TimerTask {
         private Master m;
         private SlaveImpl s;
@@ -137,16 +136,14 @@ public class SlaveImpl implements Serializable, Slave {
 
             } catch (Exception e) {
                 Log.log("SLAVE", "Erro: Mestre não encontrado.");
-                // e.printStackTrace();
 
                 Log.log("SLAVE", "Buscando novo mestre...");
-                while (!findMaster(s)) {
+                while (!findMaster(s)) { // findMaster retorna False caso mestre não seja encontrado
                     try {
                         Log.log("SLAVE", "Mestre não encontrado. Esperando 15 segundos...");
                         Thread.sleep(15 * 1000);
                     } catch (InterruptedException e1) {
-                        Log.log("SLAVE", "Erro: Timer com insonia.");
-                        // e1.printStackTrace();
+                        Log.log("SLAVE", "Timer com insonia. Buscando mestre novamente...");
                     }
                 }
                 t.cancel();
@@ -159,6 +156,7 @@ public class SlaveImpl implements Serializable, Slave {
             int attackNumber, SlaveManager callbackinterface) throws RemoteException {
         Log.log("SLAVE", "Iniciando novo sub-attack...");
 
+        // Redirecionando sub attack para um SubAttackManager
         SubAttackManager sam = new SubAttackManager(
             callbackinterface, 
             this.key, 
@@ -170,7 +168,7 @@ public class SlaveImpl implements Serializable, Slave {
             this.dictionary
         );
 		
-		executor.execute(sam);
+		executor.execute(sam); // executando SubAttackManager
     }
 
     public UUID getKey() {

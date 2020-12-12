@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FileManager {
+	// Método para leitura de arquivos
     public static byte[] readFile(String filename) throws IOException {
 
 		File file = new File(filename);
@@ -25,7 +26,8 @@ public class FileManager {
 		is.close();
 		return data;
     }
-    
+	
+	// Método para escrever arquivos
     public static void saveFile(String filename, byte[] data) throws IOException {
 		FileOutputStream out = new FileOutputStream(filename);
 		out.write(data);
